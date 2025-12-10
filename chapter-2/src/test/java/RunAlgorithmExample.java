@@ -8,58 +8,75 @@ import ProgramEntity.Problem;
 import java.io.File;
 
 /**
- * 完整的算法运行示例
- * 演示如何使用测试算例运行遗传算法
+ * Complete algorithm running example
+ * Demonstrates how to run genetic algorithm with test instances
  */
 public class RunAlgorithmExample {
 
     public static void main(String[] args) {
-        // 设置算例文件路径
+        // Set instance file path
         String instancePath = "C:\\Users\\Zhang Hailong\\Desktop\\毕设相关\\毕设程序\\Article\\chapter-2\\src\\main\\resources\\test_instance_small_2m_5j.txt";
-        
-        System.out.println("═══════════════════════════════════════════════════════════");
-        System.out.println("         3D打印车间调度问题 - 遗传算法求解示例");
-        System.out.println("═══════════════════════════════════════════════════════════\n");
-        
+
+        System.out.println("====================================================");
+        System.out.println(" 3D Printing Workshop Scheduling - GA Example");
+        System.out.println("====================================================");
+
         try {
-            // ======== 第1步：读取算例 ========
-            System.out.println("【第1步】读取算例文件...");
+            // Step 1: Read instance
+            System.out.println("\n[Step 1] Reading instance file...");
             File instanceFile = new File(instancePath);
-            
+
             if (!instanceFile.exists()) {
-                System.err.println("❌ 错误：算例文件不存在！");
-                System.err.println("文件路径：" + instancePath);
+                System.err.println("ERROR: Instance file not found!");
+                System.err.println("Path: " + instancePath);
                 return;
             }
-            
-            System.out.println("✓ 文件路径：" + instancePath);
-            
-            // ======== 第2步：解析问题实例 ========
-            System.out.println("\n【第2步】解析问题实例...");
+
+            System.out.println("OK File path: " + instancePath);
+
+            // Step 2: Parse problem
+            System.out.println("\n[Step 2] Parsing problem instance...");
             Input input = new Input(instanceFile);
             Problem problem = input.getProblemDesFromFile();
-            
-            // 显示问题信息
-            System.out.println("✓ 问题规模：");
-            System.out.println("  - 机器总数：" + problem.getMachineCount());
-            System.out.println("  - 打印机数：" + problem.getPrintMachineCount());
-            System.out.println("  - 批处理机数：" + problem.getBatchMachineCount());
-            System.out.println("  - 工件总数：" + problem.getJobCount());
-            System.out.println("  - 总工序数：" + problem.getTotalOperationCount());
-            
-            // ======== 第3步：初始化遗传算法 ========
-            System.out.println("\n【第3步】初始化遗传算法...");
+
+            // Display problem info
+            System.out.println("OK Problem scale:");
+            System.out.println("  - Total machines: " + problem.getMachineCount());
+            System.out.println("  - Printers: " + problem.getPrintMachineCount());
+            System.out.println("  - Batch machines: " + problem.getBatchMachineCount());
+            System.out.println("  - Total jobs: " + problem.getJobCount());
+            System.out.println("  - Total operations: " + problem.getTotalOperationCount());
+
+            // Step 3: Initialize GA
+            System.out.println("\n[Step 3] Initializing genetic algorithm...");
             GA ga = new GA(problem);
-            System.out.println("✓ 遗传算法初始化完成");
-            System.out.println("  - 种群规模：50");
-            System.out.println("  - 最大迭代次数：200");
-            System.out.println("  - 交叉概率：0.80");
-            System.out.println("  - 变异概率：0.10");
-            
-            // ======== 第4步：运行算法求解 ========
-            System.out.println("\n【第4步】开始运行遗传算法...");
-            System.out.println("这可能需要一些时间，请耐心等待...\n");
-            
+            System.out.println("OK GA initialized");
+            System.out.println("  - Population size: 50");
+            System.out.println("  - Max iterations: 200");
+            System.out.println("  - Crossover rate: 0.80");
+            System.out.println("  - Mutation rate: 0.10");
+
+            // Step 4: Run algorithm
+            System.out.println("\n[Step 4] Running genetic algorithm...");
+            System.out.println("This may take some time, please wait...\n");
+
+            // Debug info
+            System.out.println("Debug info:");
+            System.out.println("  jobCount: " + problem.getJobCount());
+            System.out.println("  totalOperationCount: " + problem.getTotalOperationCount());
+            int[] operationCountArr = problem.getOperationCountArr();
+            System.out.print("  operationCountArr: ");
+            for (int i = 0; i < operationCountArr.length; i++) {
+                System.out.print(operationCountArr[i] + " ");
+            }
+            System.out.println();
+            int[] machineCountArr = problem.getMachineCountArr();
+            System.out.print("  machineCountArr: ");
+            for (int i = 0; i < Math.min(machineCountArr.length, 15); i++) {
+                System.out.print(machineCountArr[i] + " ");
+            }
+            System.out.println();
+
             long startTime = System.currentTimeMillis();
             Solution solution = ga.solve();
             long endTime = System.currentTimeMillis();

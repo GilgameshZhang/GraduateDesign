@@ -13,19 +13,19 @@ public class CaculateFitness {
      * @return int[2] machineNoAndTimeArr machine index and time cost
      */
     //todo 修改寻找对应加工时间的方法
-    public static double[] getMachineNoAndTime(Problem input, int MS[], int jobNo, int operationNo, int i) {
-        double[][] proDesMatrix = input.getProDesMatrix();
-        int operationToIndex[][] = input.getOperationToIndex();
-        int tempCount = 0;
-        int totaloperNo = operationToIndex[jobNo][operationNo];// 工序编号
-        double machineTimeArr[] = proDesMatrix[totaloperNo];// 工序在备选机器上的加工时间
-        double[] machineNoAndTimeArr = new double[2];
-        int machineNo = MS[i];// 工序对应的机器编号（备选机器，1-based）
-        machineNoAndTimeArr[0] = machineNo;
-        // 修正：用机器编号-1作为索引（转为0-based）
-        machineNoAndTimeArr[1] = proDesMatrix[totaloperNo][machineNo - 1];
-        return machineNoAndTimeArr;
-    }
+   public static double[] getMachineNoAndTime(Problem input, int MS[], int jobNo, int operationNo, int i) {
+    double[][] proDesMatrix = input.getProDesMatrix();
+    int operationToIndex[][] = input.getOperationToIndex();
+    int tempCount = 0;
+    int totaloperNo = operationToIndex[jobNo][operationNo];// 工序编号
+    double machineTimeArr[] = proDesMatrix[totaloperNo];// 工序在备选机器上的加工时间
+    double[] machineNoAndTimeArr = new double[2];
+    int machineNo = MS[i];// 工序对应的机器编号（备选机器，1-based）
+    machineNoAndTimeArr[0] = machineNo;
+    // 修正：用机器编号-1作为索引（转为0-based）
+    machineNoAndTimeArr[1] = proDesMatrix[totaloperNo][machineNo - 1];
+    return machineNoAndTimeArr;
+}
 
     /**
      * @param operationMatrix the operation description of the scheduling problem
@@ -153,7 +153,7 @@ public class CaculateFitness {
             }
         }
         //按照规则安排这一批次的加工去下一个机器
-        while (!pq.isEmpty()) {
+        while (!pq.isEmpty()) {0
             Solution solution = pq.poll();
             //搜索当前完工时间最小的批处理机器，将该批次分配给他
             int minIndex = printMachineCount;
@@ -193,21 +193,21 @@ public class CaculateFitness {
             }
         }
         for (int i = jobCount * 2; i < chromosome.gene_OS.length; i++) {
-            jobNo = chromosome.gene_OS[i];
-            int currentOperNo = operNoOfEachJob[jobNo];
-
-            // 检查是否还有工序需要处理
-            if (currentOperNo >= input.getOperationCountArr()[jobNo]) {
-                continue; // 跳过已经处理完的工件
-            }
-
-            operNo = currentOperNo;
+            jobNo = chromosome.gene_OS[i];// 工件名
+             int currentOperNo = operNoOfEachJob[jobNo];
+    
+    // 检查是否还有工序需要处理
+    if (currentOperNo >= input.getOperationCountArr()[jobNo]) {
+        continue; // 跳过已经处理完的工件
+    }
+    operNo = currentOperNo;
+    
             //找到这道工序对应的机器编号以及加工时间
-            System.out.println("Job: " + jobNo + ", OperNo: " + operNo +
-                    ", MaxOper: " + input.getOperationCountArr()[jobNo]);
-            if (operNo >= input.getOperationCountArr()[jobNo]) {
-                System.out.println("ERROR: operNo exceeded!");
-            }
+            System.out.println("Job: " + jobNo + ", OperNo: " + operNo + 
+                   ", MaxOper: " + input.getOperationCountArr()[jobNo]);
+if (operNo >= input.getOperationCountArr()[jobNo]) {
+    System.out.println("ERROR: operNo exceeded!");
+}
             machineNoAndTimeArr = getMachineNoAndTime(input, chromosome.gene_MS, jobNo, operNo, i);
             machineNo = (int)machineNoAndTimeArr[0];
             operationTime = machineNoAndTimeArr[1];
