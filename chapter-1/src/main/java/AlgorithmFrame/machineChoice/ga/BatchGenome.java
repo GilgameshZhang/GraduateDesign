@@ -3,15 +3,9 @@ package AlgorithmFrame.machineChoice.ga;
 import AlgorithmFrame.bachSelect.aco.ACO;
 import AlgorithmFrame.bachSelect.ga.Ga;
 import AlgorithmFrame.bachSelect.tabuSearch.TabuSearch;
-import ProblemFrame.BatchResult;
-import ProblemFrame.Item;
-import ProblemFrame.Machine;
-import ProblemFrame.Solution;
+import ProblemFrame.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BatchGenome {
     //边界数组
@@ -22,27 +16,53 @@ public class BatchGenome {
     public boolean isRotateEnable;
     //适应度函数值（装在利用率）
     public double fitness;
+    //最大完工时间
+    public double cMax;
     //序列对应的装载结果列表
     public List<BatchResult> solutions;
+    //加工工件序列
+    public int[] genomeItemArray;
     //加工工件机器序列
     public int[] genomeMachineArray;
     //机器对应的加工工件序列
     Map<Integer, List<Item>> machineGenomeMap;
     //用什么算法解决问题
     public String method;
+
+    //
+    public int maxGen;
+
+    public int populationSize;
+
+    public int tabuSize;
     /**
      *
      * @param items 矩形集合
      * @param isRotateEnable 是否可以旋转
      */
-    public BatchGenome(Item[] items, Machine[] machines,  boolean isRotateEnable, int[] genomeMachineArray, String method) {
+    public BatchGenome(Item[] items, Machine[] machines,  boolean isRotateEnable, int[] genomeMachineArray, int[] genomeItemArray, String method) {
         this.items = items;
         this.machines = machines;
         this.isRotateEnable = isRotateEnable;
         this.genomeMachineArray = genomeMachineArray;
+        this.genomeItemArray = genomeItemArray;
         this.method = method;
         machineGenomeMap = new HashMap<>();
         solutions = new ArrayList<>();
+    }
+
+    public BatchGenome(Item[] items, Machine[] machines,  boolean isRotateEnable, int[] genomeMachineArray, int[] genomeItemArray, String method, int maxGen, int populationSize, int tabuSize) {
+        this.items = items;
+        this.machines = machines;
+        this.isRotateEnable = isRotateEnable;
+        this.genomeMachineArray = genomeMachineArray;
+        this.genomeItemArray = genomeItemArray;
+        this.method = method;
+        machineGenomeMap = new HashMap<>();
+        solutions = new ArrayList<>();
+        this.maxGen = maxGen;
+        this.populationSize = populationSize;
+        this.tabuSize = tabuSize;
     }
 
     /**
@@ -51,6 +71,7 @@ public class BatchGenome {
     public void updateFitnessAndSolution() {
         this.decode();
         double Cmax = 0.0;
+        double wasteAverage = 0.0;
         for (int i = 0; i < machines.length; i++) {
             Machine machine = machines[i];
             switch (method) {
@@ -66,26 +87,66 @@ public class BatchGenome {
                     solutions.add(batchResultAco);
                     break;
                 case "TabuSearch":
-                    TabuSearch tabuSearch = new TabuSearch(500, 10, 10, machine, machineGenomeMap.get(i), null, true);
+                    TabuSearch tabuSearch = new TabuSearch(maxGen, populationSize, tabuSize, machine, machineGenomeMap.get(i), null, true);
                     BatchResult batchResultTb = tabuSearch.solve();
+                    updateGenome(batchResultTb, i);
                     solutions.add(batchResultTb);
                     break;
             }
             double m = !solutions.get(i).endTimes.isEmpty() ? solutions.get(i).endTimes.get(solutions.get(i).endTimes.size() - 1) : 0;
             Cmax = Math.max(Cmax, m);
+            wasteAverage += solutions.get(i).fitness - m;
         }
-        fitness = Cmax;
+//        for (int i = 0; i < this.genomeItemArray.length; i++) {
+//            System.out.print(this.genomeItemArray[i] + " ");
+//        }
+//        System.out.println("主动解码后" + this.isValide());
+        cMax = Cmax;
+        fitness = Cmax + wasteAverage / machines.length;
     }
 
     public void decode() {
+//        System.out.println("主动解码前" + this.isValide());
         //将Machine数组对应的Item放入对应机器中
         for (int i = 0; i < genomeMachineArray.length; i++) {
             if (machineGenomeMap.get(genomeMachineArray[i]) == null) {
                 List<Item> printItem = new ArrayList<>();
-                printItem.add(items[i]);
+                printItem.add(items[genomeItemArray[i]]);
                 machineGenomeMap.put(genomeMachineArray[i], printItem);
             } else {
-                machineGenomeMap.get(genomeMachineArray[i]).add(items[i]);
+                machineGenomeMap.get(genomeMachineArray[i]).add(items[genomeItemArray[i]]);
+            }
+        }
+    }
+
+//    public boolean isValide() {
+//        //染色体为1-9的数字且不重复
+//        Set<Integer> set = new HashSet<>();
+//        for (int i = 0; i < this.genomeItemArray.length; i++) {
+//            if (set.contains(this.genomeItemArray[i]) || this.genomeItemArray[i] < 0 || this.genomeItemArray[i] > 9) {
+//                return false;
+//            }
+//            set.add(this.genomeItemArray[i]);
+//        }
+//        return true;
+//    }
+
+    public void updateGenome(BatchResult batchResult, int machineIndex) {
+        int[] genomeItemArray = this.genomeItemArray;
+        //batchResult.solutions.size()为该机器的分批数量
+        int index = 0;
+        for (int i = 0; i < batchResult.solutions.size(); i++) {
+            //遍历每一批次中的零件
+            for (int j = 0; j < batchResult.solutions.get(i).placeItemList.size(); j++) {
+                PlaceItem item = batchResult.solutions.get(i).placeItemList.get(j);
+                while (index < this.genomeMachineArray.length) {
+                    if (this.genomeMachineArray[index] == machineIndex) {
+                        genomeItemArray[index] = Integer.parseInt(item.name) - 1;
+                        index++;
+                        break;
+                    }
+                    index++;
+                }
             }
         }
     }

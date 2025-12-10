@@ -2,24 +2,21 @@ package ProblemFrame;
 
 import AlgorithmFrame.bachSelect.ga.Genome;
 import AlgorithmFrame.machineChoice.ga.BatchGenome;
+import lombok.Data;
 
 import java.util.List;
-
+@Data
 public class Result {
-    //拿到machine中的startTimeList和endTimeList
-    //用于制作甘特图
-    public Machine[] machineList;
-    //零件排布结果
-    public List<BatchResult> solutionList;
-    //Cmax
-    public double cmax;
+    List<BatchResult> solutionList;
+    List<Double> ireatorList;
 
     public Result() {
+    }
 
+    public Result(List<BatchResult> solutionList, List<Double> ireatorList) {
+        this.solutionList = solutionList;
+        this.ireatorList = ireatorList;
     }
-    public Result(BatchGenome bestGenome) {
-        this.machineList = bestGenome.machines;
-        this.solutionList = bestGenome.solutions;
-        this.cmax = bestGenome.fitness;
-    }
+
+
 }

@@ -170,7 +170,7 @@ public class SkyLinePacking {
             skyLinePriorityQueue.add(new SkyLine(0, 0, W));
 
             //开始天际线启发式迭代
-            while (!skyLinePriorityQueue.isEmpty() && placeItemList.size() < items.length) {
+            while (!skyLinePriorityQueue.isEmpty() && placeItemList.size() < items.length && counter < items.length) {
                 //获取当前最下最左的天际线（取出队首元素）
                 SkyLine skyLine = skyLinePriorityQueue.poll();
                 //初始化hl和hr
@@ -195,6 +195,36 @@ public class SkyLinePacking {
                         break;
                     }
                 }
+//                boolean isRotate = false;
+//                int score = score(items[counter].l, items[counter].w, skyLine, hl, hr);
+//                if (isRotateEnable) {
+//                    int rotateScore = score(items[counter].w, items[counter].l, skyLine, hl, hr);
+//                    if (rotateScore > score) {
+//                        score = rotateScore;
+//                        isRotate = true;
+//                    }
+//                }
+//                if (score >= 0) {
+//                    if (hl >= hr) {
+//                        if (score == 2) {
+//                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
+//                        } else {
+//                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
+//                        }
+//                    } else {
+//                        if (score == 6 || score == 0) {
+//                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
+//                        } else {
+//                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
+//                        }
+//                    }
+//                    used[counter] = true;
+//
+//                    totalS += (items[counter].l * items[counter].w);
+//                    if (compareDouble(items[counter].h, maxG) == 1) {
+//                        maxG = items[counter].h;
+//                    }
+//                    counter++;
                 //记录最大评分矩阵的索引
                 int maxItemIndex = -1;
                 //记录最大评分的矩阵是否旋转
@@ -238,7 +268,7 @@ public class SkyLinePacking {
                         }
                     } else { //左墙低于右墙
                         //评分为4或0的时候， 矩形靠天际线右边放，否则靠左边放
-                        if (maxScore == 4 || maxScore == 0) {
+                        if (maxScore == 6 || maxScore == 0) {
                             placeItemList.add(placeRight(items[maxItemIndex], skyLine, isRotate));
                         } else {
                             placeItemList.add(placeLeft(items[maxItemIndex], skyLine, isRotate));
@@ -318,40 +348,60 @@ public class SkyLinePacking {
         //赋初值
         int score = -1;
         if (hl >= hl) {
-            if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hl) == 0) {
+            if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hl) == 0) {
+                score = 12;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hl) == 0) {
+                score = 11;
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hr) == 0) {
+                score = 10;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hr) == 0) {
+                score = 9;
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w , hl) == 1) {
+                score = 8;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9  && compareDouble(w , hl) == 1) {
                 score = 7;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hr) == 0) {
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hl) == 0) {
                 score = 6;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85  && compareDouble(w , hl) == 1) {
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hl) == -1 && compareDouble(w, hr) == 1) {
                 score = 5;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hl) == 0) {
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hl) == -1 && compareDouble(w, hr) == 1) {
                 score = 4;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hl) == -1 && compareDouble(w, hr) == 1) {
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hr) == 0) {
                 score = 3;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hr) == 0) {
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hr) == -1) {
                 score = 2;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hr) == -1) {
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hr) == -1) {
                 score = 1;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hl) != 0) {
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hl) != 0) {
                 score = 0;
             }
         } else {//当右墙高于左墙
-            if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hr) == 0) {
+            if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hl) == 0) {
+                score = 12;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hr) == 0) {
+                score = 11;
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hr) == 0) {
+                score = 10;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hl) == 0) {
+                score = 9;
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w , hl) == 1) {
+                score = 8;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hr) == 1) {
                 score = 7;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hl) == 0) {
-                score = 6;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hr) == 1) {
-                score = 5;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hr) == 0) {
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hr) == 0) {
                 // 靠右
+                score = 6;
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hr) == -1 && compareDouble(w, hl) == 1) {
+                score = 5;
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hr) == -1 && compareDouble(w, hl) == 1) {
                 score = 4;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hr) == -1 && compareDouble(w, hl) == 1) {
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hl) == 0) {
                 score = 3;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hl) == 0) {
-                score = 2;
-            } else if (l <= skyLine.len && l > skyLine.len * 0.85 && compareDouble(w, hl) == -1) {
+            } else if (l <= skyLine.len && l > skyLine.len * 0.9 && compareDouble(w, hl) == -1) {
                 score = 1;
-            } else if (l <= skyLine.len * 0.85 && compareDouble(w, hr) != 0) {
+            } else if (compareDouble(l, skyLine.len) == 0 && compareDouble(w, hl) == -1) {
+                score = 2;
+            } else if (l <= skyLine.len * 0.9 && compareDouble(w, hr) != 0) {
                 // 靠右
                 score = 0;
             }

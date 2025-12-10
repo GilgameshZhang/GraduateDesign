@@ -57,17 +57,19 @@ public class TabuSearch {
         this.MAX_GEN = MAX_GEN;
         this.N = N;
         this.minTabuSize = minTabuSize;
-        this.maxTabuSize = minTabuSize + printItem.size();
         this.L = machine.L;
         this.W = machine.W;
         this.machine = machine;
         this.isRotateEnable = isRotateEnable;
-        if (printItem == null) {
+        if (printItem == null || printItem.isEmpty()) {
             this.items = new Item[0];
         } else {
             this.items = printItem.toArray(new Item[0]);
         }
         this.random = seed == null ? new Random() : new Random(seed);
+        if (printItem != null) {
+            this.maxTabuSize = minTabuSize + printItem.size();
+        }
     }
 
     /**
@@ -80,12 +82,12 @@ public class TabuSearch {
         }
         // 初始化禁忌表
         tabuList = new int[tabuSize][items.length];
-        // 初始解的构造讲矩形按照高度降序排列
+        //初始解就是传入的序列
         Arrays.sort(items, (o1, o2) -> {
             // 由于是降序，所以要加个负号
             return -compareDouble(o1.h, o2.h);
         });
-        // 获取初始解 [ 03, 1, 2, 3,... ,n ]
+        // 获取初始解 [ 0, 1, 2, 3,... ,n ]
         int[] sequence = new int[items.length];
         for (int i = 0; i < items.length; i++) {
             sequence[i] = i;
@@ -144,7 +146,11 @@ public class TabuSearch {
         if (newTabuSize != tabuList.length) {
             int[][] newTabuList = new int[newTabuSize][items.length];
             for (int i = 0; i < Math.min(tabuList.length, newTabuSize); i++) {
-                newTabuList[i] = tabuList[i];
+                if(tabuList.length <= newTabuSize) {
+                    newTabuList[i] = tabuList[i];
+                } else {
+                    newTabuList[i] = tabuList[i + tabuList.length - newTabuSize];
+                }
             }
             tabuList = newTabuList;
         }
@@ -154,6 +160,7 @@ public class TabuSearch {
     public double calFitness(List<Solution> solutions) {
         startTime.clear();
         endTime.clear();
+        double wasteRate = 0.0;
         for (Solution solution : solutions) {
             if (startTime.isEmpty()) {
                 startTime.add(machine.prepareTime);
@@ -163,9 +170,11 @@ public class TabuSearch {
             }
             double printTime = machine.reCoatingTime * solution.maxG / machine.printH;
             endTime.add(startTime.get(startTime.size() - 1) + printTime);
+            wasteRate += (1.0 - solution.rate);
         }
+        double avgWasteRate = wasteRate / solutions.size();
         //最大完工时间为适应度值
-        return endTime.get(endTime.size() - 1);
+        return endTime.get(endTime.size() - 1) + avgWasteRate * 100;
     }
 
     /**
@@ -232,10 +241,75 @@ public class TabuSearch {
         while (r1 == r2) {
             r2 = random.nextInt(items.length);
         }
-        // 交换
-        int temp = tempSequence[r1];
-        tempSequence[r1] = tempSequence[r2];
-        tempSequence[r2] = temp;
+        // 随机选择一种邻域结构
+        int method = random.nextInt(3);
+        switch (method) {
+            case 0:
+//                // 插入到尾部
+//                int r4 = random.nextInt(items.length - 1);
+//                int tempIns1 = tempSequence[r4];
+//                //tempSequence：源数组，从中复制元素。
+//                //r1 + 1：源数组中开始复制的位置。
+//                //tempSequence：目标数组，复制到该数组中。
+//                //r1：目标数组中开始粘贴的位置。
+//                //r2 - r1：要复制的元素数量。
+//                //在这个上下文中，它将 tempSequence 数组中从索引 r1 + 1 开始的元素复制到同一个数组中从索引 r1 开始的位置，
+//                //复制的元素数量为 r2 - r1。这实际上将 [r1 + 1, r2) 范围内的元素向左移动一个位置，覆盖掉索引 r1 处的元素。
+//                System.arraycopy(tempSequence, r4 + 1, tempSequence, r4, tempSequence.length - r4 - 1);
+//                tempSequence[tempSequence.length - 1] = tempIns1;
+//                break;
+                //swap领域结构
+                int temp = tempSequence[r1];
+                tempSequence[r1] = tempSequence[r2];
+                tempSequence[r2] = temp;
+                break;
+            case 1:
+                // 2-opt领域结构
+                if (r1 > r2) {
+                    int t = r1;
+                    r1 = r2;
+                    r2 = t;
+                }
+                while (r1 < r2) {
+                    int tempRev = tempSequence[r1];
+                    tempSequence[r1] = tempSequence[r2];
+                    tempSequence[r2] = tempRev;
+                    r1++;
+                    r2--;
+                }
+                break;
+            case 2:
+                // 将中间的零件插入头部
+//                int r3 = random.nextInt(items.length - 1) + 1;
+//                int tempIns = tempSequence[r3];
+//                    //tempSequence：源数组，从中复制元素。
+//                    //r1 + 1：源数组中开始复制的位置。
+//                    //tempSequence：目标数组，复制到该数组中。
+//                    //r1：目标数组中开始粘贴的位置。
+//                    //r2 - r1：要复制的元素数量。
+//                    //在这个上下文中，它将 tempSequence 数组中从索引 r1 + 1 开始的元素复制到同一个数组中从索引 r1 开始的位置，
+//                    //复制的元素数量为 r2 - r1。这实际上将 [r1 + 1, r2) 范围内的元素向左移动一个位置，覆盖掉索引 r1 处的元素。
+//                System.arraycopy(tempSequence, 0, tempSequence, 1, r3);
+//                tempSequence[0] = tempIns;
+//                break;
+                //插入算子
+                int tempIns = tempSequence[r1];
+                //tempSequence：源数组，从中复制元素。
+                //r1 + 1：源数组中开始复制的位置。
+                //tempSequence：目标数组，复制到该数组中。
+                //r1：目标数组中开始粘贴的位置。
+                //r2 - r1：要复制的元素数量。
+                //在这个上下文中，它将 tempSequence 数组中从索引 r1 + 1 开始的元素复制到同一个数组中从索引 r1 开始的位置，
+                //复制的元素数量为 r2 - r1。这实际上将 [r1 + 1, r2) 范围内的元素向左移动一个位置，覆盖掉索引 r1 处的元素。
+                if (r1 < r2) {
+                    System.arraycopy(tempSequence, r1 + 1, tempSequence, r1, r2 - r1);
+                    tempSequence[r2] = tempIns;
+                } else {
+                    System.arraycopy(tempSequence, r2, tempSequence, r2 + 1, r1 - r2);
+                    tempSequence[r2] = tempIns;
+                }
+                break;
+        }
         return tempSequence;
     }
 
@@ -259,7 +333,7 @@ public class TabuSearch {
      * @Description 判断两个双精度浮点型变量的大小关系
      */
     private int compareDouble(double d1, double d2) {
-        // 定义一个误差范围，如果两个数相差小于这个误差，则认为他们是相等的 1e-06 = 03.000001
+        // 定义一个误差范围，如果两个数相差小于这个误差，则认为他们是相等的 1e-06 = 0.000001
         double error = 1e-06;
         if (Math.abs(d1 - d2) < error) {
             return 0;
