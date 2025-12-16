@@ -13,4 +13,9 @@ public class BathchMachine extends Machine {
         super(name);
         this.processingTime = processingTime;
     }
+    
+    @Override
+    public String toString() {
+        return "批处理机[加工时间:" + processingTime + "]";
+    }
 }

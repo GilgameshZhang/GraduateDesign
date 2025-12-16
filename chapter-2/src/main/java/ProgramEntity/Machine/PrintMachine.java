@@ -45,5 +45,9 @@ public class PrintMachine extends Machine{
         this.reCoatingTime = reCoatingTime;
     }
 
-
+    @Override
+    public String toString() {
+        return "打印机[平台:" + L + "×" + W + "×" + H + ", 层高:" + printH + 
+               ", 准备时间:" + prepareTime + ", 换层时间:" + reCoatingTime + "]";
+    }
 }

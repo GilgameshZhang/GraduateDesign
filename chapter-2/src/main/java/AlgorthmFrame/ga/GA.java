@@ -64,16 +64,45 @@ public class GA {
 
         // 初始化工件类entries
         int[][] operationToIndex = input.getOperationToIndex();
+        double[][] proDesMatrix = input.getProDesMatrix();
+        int printMachineCount = input.getPrintMachineCount();
+        int batchMachineCount = input.getBatchMachineCount();
         Job[] jobs = new Job[jobCount];
         for (int i = 0; i < jobCount; i++) {
             int index = i;// 工件编号
             int opsNr = input.getOperationCountArr()[i];// 工件工序数
             int[] opsIndex = operationToIndex[i];// 工件工序对应的index
             int[] opsMacNr = new int[opsNr];// 工序对应备选机器数
+            
+            // 构建每道工序的可用机器号列表（1-based）
+            @SuppressWarnings("unchecked")
+            List<Integer>[] availableMachines = new ArrayList[opsNr];
             for (int j = 0; j < opsNr; j++) {
-                opsMacNr[j] = input.getMachineCountArr()[opsIndex[j]];
+                availableMachines[j] = new ArrayList<>();
+                if (j == 0) {
+                    // 打印工序：可用机器是打印机（机器号1到printMachineCount）
+                    for (int m = 1; m <= printMachineCount; m++) {
+                        availableMachines[j].add(m);
+                    }
+                } else if (j == 1) {
+                    // 批处理工序：可用机器是批处理机（机器号printMachineCount+1到printMachineCount+batchMachineCount）
+                    for (int m = printMachineCount + 1; m <= printMachineCount + batchMachineCount; m++) {
+                        availableMachines[j].add(m);
+                    }
+                } else {
+                    // 离散工序：只能选择离散加工机器（跳过打印机和批处理机）
+                    // 离散机器号范围：printMachineCount + batchMachineCount + 1 ~ machineCount
+                    int totalOperIndex = opsIndex[j];
+                    int discreteMachineStart = printMachineCount + batchMachineCount; // 0-based起始索引
+                    for (int m = discreteMachineStart; m < proDesMatrix[totalOperIndex].length; m++) {
+                        if (proDesMatrix[totalOperIndex][m] > 0) {
+                            availableMachines[j].add(m + 1); // 转为1-based机器号
+                        }
+                    }
+                }
+                opsMacNr[j] = availableMachines[j].size();
             }
-            jobs[i] = new Job(index, opsNr, opsIndex, opsMacNr);
+            jobs[i] = new Job(index, opsNr, opsIndex, opsMacNr, availableMachines);
         }
 
         long startTime = System.currentTimeMillis();// 算法开始
@@ -149,8 +178,9 @@ public class GA {
                     
                     // 打印交叉后的染色体
                     if (printCrossoverDetails && i == 0) {
-                        printChromosomeSimple("  交叉后-父代" + fatherIndex + ": ", children[fatherIndex], PRINT_CHROMOSOME_LENGTH);
-                        printChromosomeSimple("  交叉后-母代" + motherIndex + ": ", children[motherIndex], PRINT_CHROMOSOME_LENGTH);
+                        printChromosomeSimple("  交叉后-子代" + fatherIndex + ": ", children[fatherIndex], PRINT_CHROMOSOME_LENGTH);
+                        printChromosomeSimple("  交叉后-子代" + motherIndex + ": ", children[motherIndex], PRINT_CHROMOSOME_LENGTH);
+                        System.out.println("  (注: fitness将在评估阶段重新计算)");
                         System.out.println("================================================\n");
                     }
                 }
@@ -232,9 +262,16 @@ public class GA {
         System.out.println();
         System.out.println(" After " + gen + " generation, the best schedule cost is:" + bestSolution.cost);
 
-        long endTime = System.currentTimeMillis();// 算法开始
+        long endTime = System.currentTimeMillis();
         System.out.println(" 算法时间花费：" + (endTime - startTime) / 1000.0 + "s");
         bestSolution.algrithmTimeCost = (endTime - startTime) / 1000.0;
+
+        // 输出详细的调度结果（打印阶段结果和甘特图数据）
+        bestSolution.printDetailedSchedule();
+        
+        // 验证解的正确性
+        System.out.println("\n【解的正确性验证】");
+        bestSolution.checkSolution();
 
         return bestSolution;
     }
