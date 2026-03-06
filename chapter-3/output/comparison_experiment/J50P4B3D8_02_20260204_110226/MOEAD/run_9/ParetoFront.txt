@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+72761.471910	693.231603
+70143.471910	698.936622

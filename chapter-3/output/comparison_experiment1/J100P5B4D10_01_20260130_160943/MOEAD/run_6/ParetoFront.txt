@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+81011.280702	979.146351
+77947.280702	990.355940

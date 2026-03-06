@@ -195,94 +195,94 @@ public class SkyLinePacking {
                         break;
                     }
                 }
-                boolean isRotate = false;
-                int score = score(items[counter].l, items[counter].w, skyLine, hl, hr);
-                if (isRotateEnable) {
-                    int rotateScore = score(items[counter].w, items[counter].l, skyLine, hl, hr);
-                    if (rotateScore > score) {
-                        score = rotateScore;
-                        isRotate = true;
-                    }
-                }
-                if (score >= 0) {
-                    if (hl >= hr) {
-                        if (score == 2) {
-                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
-                        } else {
-                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
-                        }
-                    } else {
-                        if (score == 6 || score == 0) {
-                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
-                        } else {
-                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
-                        }
-                    }
-                    used[counter] = true;
-
-                    totalS += (items[counter].l * items[counter].w);
-                    if (compareDouble(items[counter].h, maxG) == 1) {
-                        maxG = items[counter].h;
-                    }
-                    counter++;
-//                //记录最大评分矩阵的索引
-//                int maxItemIndex = -1;
-//                //记录最大评分的矩阵是否旋转
-//                boolean isRotate = false;
-//                //记录最大评分
-//                int maxScore = -1;
-//                //遍历矩阵，选取最大评分的矩形进行放置
-//                for (int i = 0; i < items.length; i++) {
-//                    //判断矩形是否放置过
-//                    if (!used[i]) {
-//                        //不旋转的情况
-//                        int score = score(items[i].l, items[i].w, skyLine, hl, hr);
-//                        //更新最大评分
-//                        if (score > maxScore) {
-//                            maxScore = score;
-//                            maxItemIndex = i;
-//                            isRotate = false;
-//                        }
-//                        //旋转的情况
-//                        if (isRotateEnable) {
-//                            //宽高互换
-//                            int rotateScore = score(items[i].w, items[i].l, skyLine, hl, hr);
-//                            //更新最大评分
-//                            if (rotateScore > maxScore) {
-//                                maxScore = rotateScore;
-//                                maxItemIndex = i;
-//                                isRotate = true;
-//                            }
-//                        }
+                //boolean isRotate = false;
+//                int score = score(items[counter].l, items[counter].w, skyLine, hl, hr);
+//                if (isRotateEnable) {
+//                    int rotateScore = score(items[counter].w, items[counter].l, skyLine, hl, hr);
+//                    if (rotateScore > score) {
+//                        score = rotateScore;
+//                        isRotate = true;
 //                    }
 //                }
-//                //如果当前最大得分大于等于0， 则说明可以放置，按照规则进行放置
-//                if (maxScore >= 0) {
-//                    //如果左墙高于右墙
+//                if (score >= 0) {
 //                    if (hl >= hr) {
-//                        //评分为2时， 矩形靠天际线右边放置，否则靠左边放置
-//                        if (maxScore == 2) {
-//                            placeItemList.add(placeRight(items[maxItemIndex], skyLine, isRotate));
+//                        if (score == 2) {
+//                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
 //                        } else {
-//                            placeItemList.add(placeLeft(items[maxItemIndex], skyLine, isRotate));
+//                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
 //                        }
-//                    } else { //左墙低于右墙
-//                        //评分为4或0的时候， 矩形靠天际线右边放，否则靠左边放
-//                        if (maxScore == 6 || maxScore == 0) {
-//                            placeItemList.add(placeRight(items[maxItemIndex], skyLine, isRotate));
+//                    } else {
+//                        if (score == 6 || score == 0) {
+//                            placeItemList.add(placeRight(items[counter], skyLine, isRotate));
 //                        } else {
-//                            placeItemList.add(placeLeft(items[maxItemIndex], skyLine, isRotate));
+//                            placeItemList.add(placeLeft(items[counter], skyLine, isRotate));
 //                        }
 //                    }
-//                    //根据索引将该矩形设置为已用过状态
-//                    used[maxItemIndex] = true;
-//                    counter++;
-                    //将该矩形面积追加到totalS中
-//                    totalS += (items[maxItemIndex].l * items[maxItemIndex].w);
-//                    if (compareDouble(items[maxItemIndex].h, maxG) == 1) {
-//                            maxG = items[maxItemIndex].h;
+//                    used[counter] = true;
+
+//                    totalS += (items[counter].l * items[counter].w);
+//                    if (compareDouble(items[counter].h, maxG) == 1) {
+//                        maxG = items[counter].h;
 //                    }
-                } else {
+                    //counter++;
+                    //记录最大评分矩阵的索引
+                    int maxItemIndex = -1;
+                    //记录最大评分的矩阵是否旋转
+                    boolean isRotate = false;
+                    //记录最大评分
+                    int maxScore = -1;
+                    //遍历矩阵，选取最大评分的矩形进行放置
+                    for (int i = 0; i < items.length; i++) {
+                        //判断矩形是否放置过
+                        if (!used[i]) {
+                            //不旋转的情况
+                            int score = score(items[i].l, items[i].w, skyLine, hl, hr);
+                            //更新最大评分
+                            if (score > maxScore) {
+                                maxScore = score;
+                                maxItemIndex = i;
+                                isRotate = false;
+                            }
+                            //旋转的情况
+                            if (isRotateEnable) {
+                                //宽高互换
+                                int rotateScore = score(items[i].w, items[i].l, skyLine, hl, hr);
+                                //更新最大评分
+                                if (rotateScore > maxScore) {
+                                    maxScore = rotateScore;
+                                    maxItemIndex = i;
+                                    isRotate = true;
+                                }
+                            }
+                        }
+                    }
+                    //如果当前最大得分大于等于0， 则说明可以放置，按照规则进行放置
+                    if (maxScore >= 0) {
+                        //如果左墙高于右墙
+                        if (hl >= hr) {
+                            //评分为2时， 矩形靠天际线右边放置，否则靠左边放置
+                            if (maxScore == 2) {
+                                placeItemList.add(placeRight(items[maxItemIndex], skyLine, isRotate));
+                            } else {
+                                placeItemList.add(placeLeft(items[maxItemIndex], skyLine, isRotate));
+                            }
+                        } else { //左墙低于右墙
+                            //评分为4或0的时候， 矩形靠天际线右边放，否则靠左边放
+                            if (maxScore == 6 || maxScore == 0) {
+                                placeItemList.add(placeRight(items[maxItemIndex], skyLine, isRotate));
+                            } else {
+                                placeItemList.add(placeLeft(items[maxItemIndex], skyLine, isRotate));
+                            }
+                        }
+                        //根据索引将该矩形设置为已用过状态
+                        used[maxItemIndex] = true;
+                        counter++;
+                        //将该矩形面积追加到totalS中
+                        totalS += (items[maxItemIndex].l * items[maxItemIndex].w);
+                        if (compareDouble(items[maxItemIndex].h, maxG) == 1) {
+                            maxG = items[maxItemIndex].h;
+                        }
+                    } else {
                     //如果评分都小于0， 则说明该天际线放不下任何一个矩形，此时上移天际线，与其他天际线合并
                     combineSkyLine(skyLine);
                 }

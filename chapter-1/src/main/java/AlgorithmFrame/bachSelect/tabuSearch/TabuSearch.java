@@ -56,7 +56,8 @@ public class TabuSearch {
     public TabuSearch(int MAX_GEN, int N, int minTabuSize, Machine machine, List<Item> printItem, Long seed, boolean isRotateEnable) {
         this.MAX_GEN = MAX_GEN;
         this.N = N;
-        this.minTabuSize = minTabuSize;
+        this.minTabuSize = 10;
+        this.tabuSize = minTabuSize;
         this.L = machine.L;
         this.W = machine.W;
         this.machine = machine;
@@ -83,10 +84,10 @@ public class TabuSearch {
         // 初始化禁忌表
         tabuList = new int[tabuSize][items.length];
         //初始解就是传入的序列
-        Arrays.sort(items, (o1, o2) -> {
-            // 由于是降序，所以要加个负号
-            return -compareDouble(o1.h, o2.h);
-        });
+//        Arrays.sort(items, (o1, o2) -> {
+//            // 由于是降序，所以要加个负号
+//            return -compareDouble(o1.h, o2.h);
+//        });
         // 获取初始解 [ 0, 1, 2, 3,... ,n ]
         int[] sequence = new int[items.length];
         for (int i = 0; i < items.length; i++) {

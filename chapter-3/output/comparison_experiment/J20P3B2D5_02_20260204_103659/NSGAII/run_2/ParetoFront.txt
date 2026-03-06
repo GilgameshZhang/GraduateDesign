@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+38563.857143	184.057013
+38399.857143	189.068663

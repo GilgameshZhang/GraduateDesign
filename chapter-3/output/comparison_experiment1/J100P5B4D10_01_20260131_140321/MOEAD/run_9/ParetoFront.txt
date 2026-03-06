@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+79485.564103	996.143074
+79304.564103	996.472860

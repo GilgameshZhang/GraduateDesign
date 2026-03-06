@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+72587.882353	929.608201
+72533.882353	929.783801

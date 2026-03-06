@@ -36,4 +36,18 @@ public class ReadDataUtil {
         }
         return new Input(machineList, itemList, true);
     }
+    
+    /**
+     * 静态方法：读取数据
+     * @param machinePath 机器文件路径
+     * @param itemPath 零件文件路径
+     * @param isRotateEnable 是否允许旋转
+     * @return Input对象
+     * @throws IOException
+     */
+    public static Input readData(String machinePath, String itemPath, boolean isRotateEnable) throws IOException {
+        ReadDataUtil util = new ReadDataUtil();
+        String[] pathList = {itemPath, machinePath};
+        return util.getInput(pathList);
+    }
 }

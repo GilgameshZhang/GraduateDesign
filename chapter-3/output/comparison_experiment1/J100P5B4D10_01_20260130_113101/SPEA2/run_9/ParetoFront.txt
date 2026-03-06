@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+68829.000000	865.540889
+67691.000000	865.568822

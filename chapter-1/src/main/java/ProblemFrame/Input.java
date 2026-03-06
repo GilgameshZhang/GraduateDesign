@@ -7,6 +7,7 @@ public class Input {
     public List<Machine> machineList;
     //打印件列表
     public List<Item> itemList;
+
     //是否允许旋转
     public boolean isRotateEnable;
 

@@ -1,6 +1,5 @@
 package AlgorithmFrame.machineChoice.ga;
 
-import AlgorithmFrame.bachSelect.ga.Genome;
 import ProblemFrame.*;
 
 import java.util.*;
@@ -34,9 +33,9 @@ public class BatchGa {
     //新一代种群的基因信息
     public List<BatchGenome> newPopulation = new ArrayList<>();
     //遗传的代数（）第几代
-    private int t = 0;
+    public int t = 0;
     //最佳迭代次数
-    private int bestT = -1;
+    public int bestT = -1;
     //随机函数对象
     public Random random;
     //各个个体的累积概率
@@ -56,12 +55,19 @@ public class BatchGa {
     // 自适应变异率
     private double initialMutationRate;
     private double tempMutationRate;
+    
+    // 初始化策略参数：启发式初始化的比例 (0.0-1.0)
+    // 0.0 = 全部随机, 1.0 = 全部启发式, 0.5 = 50%启发式 + 50%随机
+    public double heuristicInitRatio = 1.0; // 默认全部启发式（保持原有行为）
 
     public int decodeMaxGen;
 
     public int decodeTabuSize;
 
     public int decodeMaxN;
+    
+    // 时间限制（毫秒）
+    public long timeLimitMs;
 
 
 
@@ -96,6 +102,61 @@ public class BatchGa {
         this.decodeMaxGen = decodeMaxGen;
         this.decodeTabuSize = decodeTabuSize;
         this.decodeMaxN = decodeMaxN;
+        this.timeLimitMs = 0; // 默认不使用时间限制
+    }
+    
+    /**
+     * 构造函数（带时间限制）
+     */
+    public BatchGa(int MAX_GEN, int popSize, double variationExchangeCount, int cloneNumOfBestIndividual, 
+                   double mutationRate, double crossoverRate, Input input, boolean isRotateEnable, 
+                   String method, int decodeMaxGen, int decodeTabuSize, int decodeMaxN, long timeLimitMs) {
+        this.MAX_GEN = MAX_GEN;
+        this.popSize = popSize;
+        this.variationExchangeCount = variationExchangeCount;
+        this.cloneNumOfBestIndividual = cloneNumOfBestIndividual;
+        this.mutationRate = mutationRate;
+        this.initialMutationRate = mutationRate;
+        this.crossoverRate = crossoverRate;
+        this.isRotateEnable = isRotateEnable;
+        this.machines = input.machineList.toArray(new Machine[0]);
+        this.items = input.itemList.toArray(new Item[0]);
+        this.random = new Random();
+        this.method = method;
+        this.decodeMaxGen = decodeMaxGen;
+        this.decodeTabuSize = decodeTabuSize;
+        this.decodeMaxN = decodeMaxN;
+        this.timeLimitMs = timeLimitMs;
+    }
+    
+    /**
+     * 构造函数（带时间限制和初始化比例）
+     * @param heuristicInitRatio 启发式初始化的比例 (0.0-1.0)
+     *                          0.0 = 全部随机初始化
+     *                          1.0 = 全部启发式初始化  
+     *                          0.5 = 50%启发式 + 50%随机
+     */
+    public BatchGa(int MAX_GEN, int popSize, double variationExchangeCount, int cloneNumOfBestIndividual, 
+                   double mutationRate, double crossoverRate, Input input, boolean isRotateEnable, 
+                   String method, int decodeMaxGen, int decodeTabuSize, int decodeMaxN, long timeLimitMs,
+                   double heuristicInitRatio) {
+        this.MAX_GEN = MAX_GEN;
+        this.popSize = popSize;
+        this.variationExchangeCount = variationExchangeCount;
+        this.cloneNumOfBestIndividual = cloneNumOfBestIndividual;
+        this.mutationRate = mutationRate;
+        this.initialMutationRate = mutationRate;
+        this.crossoverRate = crossoverRate;
+        this.isRotateEnable = isRotateEnable;
+        this.machines = input.machineList.toArray(new Machine[0]);
+        this.items = input.itemList.toArray(new Item[0]);
+        this.random = new Random();
+        this.method = method;
+        this.decodeMaxGen = decodeMaxGen;
+        this.decodeTabuSize = decodeTabuSize;
+        this.decodeMaxN = decodeMaxN;
+        this.timeLimitMs = timeLimitMs;
+        this.heuristicInitRatio = Math.max(0.0, Math.min(1.0, heuristicInitRatio)); // 确保在[0,1]范围内
     }
 
     /**
@@ -105,15 +166,40 @@ public class BatchGa {
         //初始化
         initVar();
         List<Double> itreatorList = new ArrayList<>();
+        
+        // 记录开始时间
+        long startTime = System.currentTimeMillis();
+        
         //迭代次数小于设定次数时进行迭代
-        while (t < MAX_GEN) {
+        // 如果设置了时间限制，则使用时间限制；否则使用迭代次数限制
+        while (true) {
+            // 检查时间限制
+            if (timeLimitMs > 0) {
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                if (elapsedTime >= timeLimitMs) {
+                    System.out.println("达到时间限制 " + timeLimitMs + "ms，算法终止");
+                    System.out.println("总共完成 " + t + " 代，最优Cmax: " + bestGenome.cMax);
+                    break;
+                }
+            }
+            
             popSize = population.size();
             //进行进化操作
             evolution();
             //更新种群
             population = copyGenomeList(newPopulation);
             t++;
-            System.out.println("当前代数:" + t + ":" + bestGenome.cMax);
+            
+            // 每10代输出一次进度
+            if (timeLimitMs > 0 && t % 10 == 0) {
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                double progress = (elapsedTime * 100.0) / timeLimitMs;
+                System.out.println(String.format("代数:%d, Cmax:%.2f, 进度:%.1f%% (%.1fs/%.1fs)", 
+                    t, bestGenome.cMax, progress, elapsedTime/1000.0, timeLimitMs/1000.0));
+            } else {
+                System.out.println("当前代数:" + t + ":" + bestGenome.cMax);
+            }
+            
             itreatorList.add(bestGenome.cMax);
         }
         //返回最好的染色体
@@ -121,7 +207,8 @@ public class BatchGa {
     }
 
     /**
-     * 初始化种群
+     * 初始化种群（支持混合初始化策略）
+     * 根据 heuristicInitRatio 参数决定启发式初始化和随机初始化的比例
      */
     public void initVar() {
         this.itemNum = this.items.length;
@@ -134,20 +221,28 @@ public class BatchGa {
         double[] machinePrintAbility = new double[machineNum];
         double sum = 0.0;
         for (int i = 0; i < machineNum; i++) {
-            machinePrintAbility[i] = 1 / machines[i].printH;
+            machinePrintAbility[i] = 1 * machines[i].reCoatingTime / machines[i].printH;
             sum += machinePrintAbility[i];
         }
         for (int i = 0; i < machineNum; i++) {
             machinePrintAbility[i] /= sum;
         }
         this.population = new ArrayList<>();
-        //生成初始种群
-        for (int i = 0; i < cloneNumOfBestIndividual; i++) {
+        
+        // 计算启发式初始化的个体数量
+        int heuristicCount = (int) Math.ceil(popSize * heuristicInitRatio);
+        int randomCount = popSize - heuristicCount;
+        
+        System.out.println(String.format("种群初始化策略: 启发式=%d个(%.0f%%), 随机=%d个(%.0f%%)", 
+            heuristicCount, heuristicInitRatio * 100, randomCount, (1 - heuristicInitRatio) * 100));
+        
+        // 1. 生成启发式初始化的个体
+        for (int i = 0; i < heuristicCount; i++) {
             Integer[] itemSequence = new Integer[itemNum];
             for (int j = 0; j < itemSequence.length; j++) {
                 itemSequence[j] = genomeArray1.get(j);
             }
-            //对零件进行排序从高到低
+            //对零件进行排序从高到低（启发式规则）
             Arrays.sort(itemSequence, (o1, o2) -> (int) (items[o2].h - items[o1].h));
             int[] machineSequence = new int[itemNum];
             for (int j = 0; j < machineSequence.length; j++) {
@@ -172,8 +267,10 @@ public class BatchGa {
             batchGenome.updateFitnessAndSolution();
             population.add(batchGenome);
         }
-        while (population.size() <= popSize) {
-            //Collections.shuffle随机打乱原来的顺序生成初始单个染色体
+        
+        // 2. 生成随机初始化的个体
+        for (int i = 0; i < randomCount; i++) {
+            //Collections.shuffle随机打乱原来的顺序生成初始单个染色体（随机初始化）
             Collections.shuffle(genomeArray1);
             int[] itemSequence = new int[itemNum];
             for (int j = 0; j < itemSequence.length; j++) {
@@ -195,6 +292,8 @@ public class BatchGa {
             //将生成的染色体加入种群中
             population.add(batchGenome);
         }
+        
+        //找出最优初始解
         bestGenome = copyGenome(population.get(0));
         for (int i = 1; i < popSize; i++) {
             BatchGenome genome = population.get(i);
@@ -429,7 +528,7 @@ public class BatchGa {
      * 变异操作
      * @param k 变异的基因idx
      */
-    private void varation(int k) {
+    protected void varation(int k) {
         //小根堆
         PriorityQueue<BatchGenome> heap = new PriorityQueue<>(new Comparator<BatchGenome>() {
             @Override
@@ -438,6 +537,25 @@ public class BatchGa {
             }
         });
         BatchGenome genome = newPopulation.get(k);
+        
+        // 添加空值检查，防止NullPointerException
+        if (genome.solutions == null || genome.solutions.isEmpty()) {
+            return; // 如果solutions为空，直接返回
+        }
+        
+        // 检查是否所有solutions都为空
+        boolean allEmpty = true;
+        for (int i = 0; i < genome.solutions.size(); i++) {
+            if (genome.solutions.get(i) != null && 
+                !genome.solutions.get(i).solutions.isEmpty()) {
+                allEmpty = false;
+                break;
+            }
+        }
+        if (allEmpty) {
+            return; // 如果所有solutions都为空，直接返回
+        }
+        
         int[] machineArray = genome.genomeMachineArray;
         int[] itemArray = genome.genomeItemArray;
         //找到最大和最小的机器号-1
@@ -550,6 +668,47 @@ public class BatchGa {
                 machineMap.put(machineArray[i], list);
             }
         }
+        // 检查maxIndex和minIndex是否有效
+        if (maxIndex == -1 || minIndex == -1) {
+            return; // 如果无法确定maxIndex或minIndex，直接返回
+        }
+        
+        // 检查maxIndex是否在有效范围内
+        if (maxIndex >= machines.length || minIndex >= machines.length) {
+            return; // 索引超出范围
+        }
+        
+        // 检查machineMap中是否有对应的键
+        if (!machineMap.containsKey(maxIndex)) {
+            // maxIndex机器没有分配零件，尝试找一个有零件的机器
+            for (Integer machineId : machineMap.keySet()) {
+                if (!machineMap.get(machineId).isEmpty()) {
+                    maxIndex = machineId;
+                    break;
+                }
+            }
+        }
+        
+        if (!machineMap.containsKey(minIndex)) {
+            // minIndex机器没有分配零件，尝试找一个有零件的机器
+            for (Integer machineId : machineMap.keySet()) {
+                if (!machineMap.get(machineId).isEmpty()) {
+                    minIndex = machineId;
+                    break;
+                }
+            }
+        }
+        
+        // 再次检查是否找到了有效的机器
+        if (!machineMap.containsKey(maxIndex) || !machineMap.containsKey(minIndex)) {
+            return; // 如果machineMap中没有对应的机器，直接返回
+        }
+        
+        // 检查machineMap中的列表是否为空
+        if (machineMap.get(maxIndex).isEmpty() || machineMap.get(minIndex).isEmpty()) {
+            return; // 如果对应机器没有分配零件，直接返回
+        }
+        
         for (int i = 0; i < 2 * variationExchangeCount; i++) {
             BatchGenome genomeI = copyGenome(newPopulation.get(k));
             int[] machineArrayI = genome.genomeMachineArray;
@@ -567,7 +726,19 @@ public class BatchGa {
                 }
             } else if (r < 0.9) {
                 //将加工时间最长的机器上的最后一个批次里最高的零件分配给加工时间最短的机器
+                // 检查genomeI.solutions是否有效
+                if (genomeI.solutions == null || genomeI.solutions.size() <= maxIndex || 
+                    genomeI.solutions.get(maxIndex) == null || 
+                    genomeI.solutions.get(maxIndex).solutions == null ||
+                    genomeI.solutions.get(maxIndex).solutions.isEmpty()) {
+                    continue; // 跳过这次迭代
+                }
+                
                 List<PlaceItem> placeItemList = genomeI.solutions.get(maxIndex).solutions.get(genomeI.solutions.get(maxIndex).solutions.size() - 1).placeItemList;
+                if (placeItemList == null || placeItemList.isEmpty()) {
+                    continue; // 跳过这次迭代
+                }
+                
                 PlaceItem maxIndex1 = placeItemList.get(0);
                 for (int j = 0; j < placeItemList.size(); j++) {
                     if (placeItemList.get(j).h > maxIndex1.h) {
@@ -585,6 +756,10 @@ public class BatchGa {
                     }
                 //machineArrayI[machineMap.get(maxIndex).get(machineMap.get(maxIndex).size() - 1)] = minIndex;
             } else {
+                    // 检查minRate是否有效
+                    if (!machineMap.containsKey(minRate) || machineMap.get(minRate).isEmpty()) {
+                        continue; // 跳过这次迭代
+                    }
                     int r1 = random.nextInt(machineMap.get(maxIndex).size());
                     if (items[machineMap.get(maxIndex).get(r1)].l > machines[minRate].L || items[machineMap.get(maxIndex).get(r1)].w > machines[minRate].W || items[machineMap.get(maxIndex).get(r1)].h > machines[minRate].H) {
                         while (true) {

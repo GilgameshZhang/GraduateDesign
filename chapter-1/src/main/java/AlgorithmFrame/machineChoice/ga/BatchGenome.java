@@ -87,10 +87,24 @@ public class BatchGenome {
                     solutions.add(batchResultAco);
                     break;
                 case "TabuSearch":
-                    TabuSearch tabuSearch = new TabuSearch(maxGen, populationSize, tabuSize, machine, machineGenomeMap.get(i), null, true);
-                    BatchResult batchResultTb = tabuSearch.solve();
-                    updateGenome(batchResultTb, i);
-                    solutions.add(batchResultTb);
+                    // 检查是否使用禁忌搜索（支持消融实验）
+                    boolean useTabuSearch = Boolean.parseBoolean(
+                        System.getProperty("ablation.useTabuSearch", "true")
+                    );
+                    
+                    if (useTabuSearch) {
+                        // 使用禁忌搜索
+                        TabuSearch tabuSearch = new TabuSearch(maxGen, populationSize, tabuSize, machine, machineGenomeMap.get(i), null, true);
+                        BatchResult batchResultTb = tabuSearch.solve();
+                        updateGenome(batchResultTb, i);
+                        solutions.add(batchResultTb);
+                    } else {
+                        // 不使用禁忌搜索（消融实验）- 使用最小参数
+                        TabuSearch simpleSearch = new TabuSearch(1, 1, 1, machine, machineGenomeMap.get(i), null, true);
+                        BatchResult batchResultTb = simpleSearch.solve();
+                        updateGenome(batchResultTb, i);
+                        solutions.add(batchResultTb);
+                    }
                     break;
             }
             double m = !solutions.get(i).endTimes.isEmpty() ? solutions.get(i).endTimes.get(solutions.get(i).endTimes.size() - 1) : 0;

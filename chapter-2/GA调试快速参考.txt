@@ -1,0 +1,105 @@
+╔════════════════════════════════════════════════════════════════╗
+║               遗传算法调试模式 - 快速参考                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+【1】快速启用调试模式
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+在运行 GA 之前添加以下代码：
+
+    GA.DEBUG_MODE = true;              // 开启调试
+    GA.PRINT_CROSSOVER = true;         // 打印交叉
+    GA.PRINT_MUTATION = true;          // 打印变异
+    GA.PRINT_INTERVAL = 10;            // 每10代打印
+    GA.PRINT_CHROMOSOME_LENGTH = 15;   // 显示前15个基因
+
+【2】常用配置场景
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+场景1: 观察算法初期演化（前几代）
+    GA.DEBUG_MODE = true;
+    GA.PRINT_INTERVAL = 1;  // 每代都打印
+
+场景2: 只观察交叉操作
+    GA.DEBUG_MODE = true;
+    GA.PRINT_CROSSOVER = true;
+    GA.PRINT_MUTATION = false;
+
+场景3: 定期抽样检查（长时间运行）
+    GA.DEBUG_MODE = true;
+    GA.PRINT_INTERVAL = 50;  // 每50代打印一次
+
+场景4: 详细观察（小规模问题）
+    GA.DEBUG_MODE = true;
+    GA.PRINT_CHROMOSOME_LENGTH = 50;  // 显示更多基因
+    GA.PRINT_INTERVAL = 5;
+
+【3】参数说明
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─────────────────────┬─────────┬──────────┬─────────────────┐
+│ 参数                │ 类型    │ 默认值   │ 说明            │
+├─────────────────────┼─────────┼──────────┼─────────────────┤
+│ DEBUG_MODE          │ boolean │ false    │ 总调试开关      │
+│ PRINT_CROSSOVER     │ boolean │ true     │ 打印交叉操作    │
+│ PRINT_MUTATION      │ boolean │ true     │ 打印变异操作    │
+│ PRINT_INTERVAL      │ int     │ 50       │ 打印间隔(代数)  │
+│ PRINT_CHROMOSOME... │ int     │ 10       │ 显示基因数量    │
+└─────────────────────┴─────────┴──────────┴─────────────────┘
+
+【4】输出信息解读
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+交叉操作输出格式：
+    ========== 代数 0: 交叉操作示例 ==========
+    交叉前-父代0: OS=[...], MS=[...], fitness=0.0012
+    交叉前-母代1: OS=[...], MS=[...], fitness=0.0011
+    交叉后-父代0: OS=[...], MS=[...], fitness=0.0012
+    交叉后-母代1: OS=[...], MS=[...], fitness=0.0011
+
+变异操作输出格式：
+    ========== 代数 0: 变异操作示例 ==========
+    变异前-个体5: OS=[...], MS=[...], fitness=0.0010
+    变异后-个体5: OS=[...], MS=[...], fitness=0.0010
+    本代共发生 5 次变异
+
+其中：
+  • OS (Operation Sequence): 工序执行顺序
+  • MS (Machine Selection): 机器选择序列
+  • fitness: 适应度（越大越好，= 1/makespan）
+
+【5】测试程序
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+运行预配置的调试测试：
+    java -cp "src/main/java;src/test/java" test.TestGAWithDebug
+
+【6】注意事项
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ PRINT_INTERVAL 太小会产生大量输出，影响性能
+⚠ 大规模问题建议增大 PRINT_INTERVAL，减小 PRINT_CHROMOSOME_LENGTH
+⚠ 生产环境请关闭 DEBUG_MODE
+✓ 调试模式仅在满足 PRINT_INTERVAL 条件的代数打印
+✓ 每次只打印第一对交叉/第一个变异的个体（避免输出过多）
+
+【7】快速示例
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 完整示例代码
+public class MyTest {
+    public static void main(String[] args) {
+        // 1. 读取算例
+        Input input = new Input(new File("path/to/instance.txt"));
+        Problem problem = input.getProblemDesFromFile();
+        
+        // 2. 配置调试参数
+        GA.DEBUG_MODE = true;
+        GA.PRINT_INTERVAL = 10;
+        GA.PRINT_CHROMOSOME_LENGTH = 15;
+        
+        // 3. 运行算法
+        GA ga = new GA(problem);
+        Solution solution = ga.solve();
+        
+        System.out.println("最优解: " + solution.cost);
+    }
+}
+
+╔════════════════════════════════════════════════════════════════╗
+║ 详细文档请参考: GA调试模式使用说明.md                          ║
+╚════════════════════════════════════════════════════════════════╝
+

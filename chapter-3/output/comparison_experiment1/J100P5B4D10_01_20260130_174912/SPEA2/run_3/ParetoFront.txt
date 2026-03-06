@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+74530.438596	915.584226
+74847.438596	913.713109

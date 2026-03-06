@@ -1,0 +1,6 @@
+# Pareto Front
+# Size: 2
+# Format: Cmax Energy
+
+39475.454545	105.817867
+39368.454545	105.860795

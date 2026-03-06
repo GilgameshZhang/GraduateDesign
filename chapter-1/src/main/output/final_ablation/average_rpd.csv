@@ -1,0 +1,7 @@
+ConfigID,ConfigName,AvgRPD
+V0-Full,完整算法,0.00
+V1-RandomInit,随机初始化,0.57
+V2-SimpleMutation,简化变异,1.09
+V3-NoTabu,无禁忌搜索,0.29
+V4-SimpleScore,简化评分,4.84
+V5-Minimal,最小配置,6.46

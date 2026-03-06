@@ -231,28 +231,65 @@ public class SkyLinePacking {
                 boolean isRotate = false;
                 //记录最大评分
                 int maxScore = -1;
-                //遍历矩阵，选取最大评分的矩形进行放置
-                for (int i = 0; i < items.length; i++) {
-                    //判断矩形是否放置过
-                    if (!used[i]) {
-                        //不旋转的情况
-                        int score = score(items[i].l, items[i].w, skyLine, hl, hr);
-                        //更新最大评分
-                        if (score > maxScore) {
+                
+                // 检查是否使用复杂评分策略（支持消融实验）
+                boolean useComplexScore = Boolean.parseBoolean(
+                    System.getProperty("ablation.useComplexScore", "true")
+                );
+                
+                if (useComplexScore) {
+                    //【复杂评分策略】遍历矩阵，选取最大评分的矩形进行放置
+                    for (int i = 0; i < items.length; i++) {
+                        //判断矩形是否放置过
+                        if (!used[i]) {
+                            //不旋转的情况
+                            int score = score(items[i].l, items[i].w, skyLine, hl, hr);
+                            //更新最大评分
+                            if (score > maxScore) {
+                                maxScore = score;
+                                maxItemIndex = i;
+                                isRotate = false;
+                            }
+                            //旋转的情况
+                            if (isRotateEnable) {
+                                //宽高互换
+                                int rotateScore = score(items[i].w, items[i].l, skyLine, hl, hr);
+                                //更新最大评分
+                                if (rotateScore > maxScore) {
+                                    maxScore = rotateScore;
+                                    maxItemIndex = i;
+                                    isRotate = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    //【简化策略 - 消融实验】不遍历评分，直接按顺序尝试当前工件
+                    // 如果当前工件放不下，就结束当前批次
+                    if (counter < items.length && !used[counter]) {
+                        // 尝试不旋转
+                        int score = score(items[counter].l, items[counter].w, skyLine, hl, hr);
+                        if (score >= 0) {
                             maxScore = score;
-                            maxItemIndex = i;
+                            maxItemIndex = counter;
                             isRotate = false;
                         }
-                        //旋转的情况
-                        if (isRotateEnable) {
-                            //宽高互换
-                            int rotateScore = score(items[i].w, items[i].l, skyLine, hl, hr);
-                            //更新最大评分
-                            if (rotateScore > maxScore) {
+                        
+                        // 如果可以旋转，尝试旋转
+                        if (isRotateEnable && maxScore < 0) {
+                            int rotateScore = score(items[counter].w, items[counter].l, skyLine, hl, hr);
+                            if (rotateScore >= 0) {
                                 maxScore = rotateScore;
-                                maxItemIndex = i;
+                                maxItemIndex = counter;
                                 isRotate = true;
                             }
+                        }
+                        
+                        // 如果当前工件放不下，结束当前批次（设置counter使内层循环退出）
+                        if (maxScore < 0) {
+                            // 结束当前批次：上移天际线后就退出
+                            combineSkyLine(skyLine);
+                            break; // 退出内层while循环，开始新批次
                         }
                     }
                 }

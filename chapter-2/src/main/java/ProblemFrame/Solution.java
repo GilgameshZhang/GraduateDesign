@@ -19,6 +19,9 @@ public class Solution {
     public double cost;
     public double algrithmTimeCost;
     public Random r;
+    
+    // Fitness缩放系数：与GA.java中保持一致
+    private static final double FITNESS_SCALE = 100000000.0;
 
     public Solution() {
 
@@ -47,12 +50,11 @@ public class Solution {
     public void printToConsole() {
         for (int i = 0; i < operationMatrix.length; i++) {
             for (int j = 0; j < operationMatrix[i].length; j++) {
-                // machineNo现在是1-based，直接输出
-                System.out.print("Machine:" + operationMatrix[i][j].machineNo + "|Job:" + (i + 1) + "|Operation:"
+                System.out.print("Machine:" + (operationMatrix[i][j].machineNo + 1) + "|Job:" + (i + 1) + "|Operation:"
                         + (j + 1));
-                System.out.println("|time(" + operationMatrix[i][j].machineNo + "," + (i + 1) + ")="
+                System.out.println("|time(" + (operationMatrix[i][j].machineNo + 1) + "," + (i + 1) + ")="
                         + (operationMatrix[i][j].endTime - operationMatrix[i][j].startTime) + "|start time:"
-                        + operationMatrix[i][j].startTime + "|end time:" + operationMatrix[i][j].endTime);
+                        + (operationMatrix[i][j].startTime + 1) + "|end time:" + operationMatrix[i][j].endTime);
             }
         }
     }
@@ -68,8 +70,7 @@ public class Solution {
             for (int j = 0; j < operationMatrix[i].length; j++) {
                 jobNoBuilder.append((i + 1) + " ");
                 operationNoBuilder.append((j + 1) + " ");
-                // machineNo现在是1-based，直接输出
-                machineNoBuilder.append(operationMatrix[i][j].machineNo + " ");
+                machineNoBuilder.append((operationMatrix[i][j].machineNo + 1) + " ");
                 startTimeBuilder.append(operationMatrix[i][j].startTime + " ");
                 endTimeBuilder.append(operationMatrix[i][j].endTime + " ");
             }
@@ -90,282 +91,6 @@ public class Solution {
         }
     }
 
-    /**
-     * 生成重复字符串（兼容Java 8）
-     */
-    private static String repeatStr(String s, int count) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            sb.append(s);
-        }
-        return sb.toString();
-    }
-    
-    /**
-     * 检查两个工件是否在XY平面上重叠
-     * @param pi1 工件1
-     * @param pi2 工件2
-     * @return true表示重叠，false表示不重叠
-     */
-    private boolean isOverlap(ProgramEntity.PlaceItem pi1, ProgramEntity.PlaceItem pi2) {
-        // 工件1的边界
-        double left1 = pi1.x;
-        double right1 = pi1.x + pi1.l;
-        double bottom1 = pi1.y;
-        double top1 = pi1.y + pi1.w;
-        
-        // 工件2的边界
-        double left2 = pi2.x;
-        double right2 = pi2.x + pi2.l;
-        double bottom2 = pi2.y;
-        double top2 = pi2.y + pi2.w;
-        
-        // 检查是否分离（不重叠的条件）
-        // 如果一个矩形完全在另一个的左边、右边、上边或下边，则不重叠
-        boolean separated = (right1 <= left2) ||  // pi1在pi2左边
-                           (right2 <= left1) ||   // pi1在pi2右边
-                           (top1 <= bottom2) ||   // pi1在pi2下边
-                           (top2 <= bottom1);     // pi1在pi2上边
-        
-        return !separated;
-    }
-    
-    /**
-     * 打印详细的调度结果，包括打印阶段结果和甘特图数据
-     */
-    public void printDetailedSchedule() {
-        System.out.println("\n" + repeatStr("=", 80));
-        System.out.println("                         调度结果详细信息");
-        System.out.println(repeatStr("=", 80));
-        
-        int printMachineCount = problem.getPrintMachineCount();
-        int batchMachineCount = problem.getBatchMachineCount();
-        int machineCount = problem.getMachineCount();
-        int jobCount = problem.getJobCount();
-        
-        // ==================== 第一部分：打印阶段结果 ====================
-        System.out.println("\n【第一阶段：3D打印结果】");
-        System.out.println(repeatStr("-", 60));
-        
-        ProgramEntity.Machine.PrintMachine[] printMachines = new ProgramEntity.Machine.PrintMachine[printMachineCount];
-        for (int i = 0; i < printMachineCount; i++) {
-            printMachines[i] = (ProgramEntity.Machine.PrintMachine) problem.getMachines()[i];
-        }
-        
-        boolean hasError = false;
-        
-        if (chromosome != null && chromosome.printSolution != null) {
-            for (int m = 0; m < printMachineCount; m++) {
-                ProgramEntity.Machine.PrintMachine pm = printMachines[m];
-                System.out.println("\n▶ 打印机 " + (m + 1) + " (平台尺寸: " + 
-                                 String.format("%.0f", pm.L) + " x " + 
-                                 String.format("%.0f", pm.W) + ", 最大高度: " + 
-                                 String.format("%.0f", pm.H) + "):");
-                
-                if (chromosome.printSolution[m] != null && !chromosome.printSolution[m].isEmpty()) {
-                    int batchNo = 1;
-                    for (Object obj : chromosome.printSolution[m]) {
-                        if (obj instanceof ProgramEntity.Solution) {
-                            ProgramEntity.Solution sol = (ProgramEntity.Solution) obj;
-                            System.out.println("\n  批次 " + batchNo + ":");
-                            System.out.println("    时间: [" + String.format("%.2f", sol.startTime) + 
-                                             " ~ " + String.format("%.2f", sol.endTime) + "]");
-                            System.out.println("    最大高度: " + String.format("%.2f", sol.maxG));
-                            
-                            // 输出每个工件的位置信息
-                            if (sol.placeItemList != null && !sol.placeItemList.isEmpty()) {
-                                System.out.println("    工件位置详情:");
-                                System.out.println("    " + String.format("%-8s", "工件") + 
-                                                 String.format("%-10s", "X坐标") + 
-                                                 String.format("%-10s", "Y坐标") + 
-                                                 String.format("%-8s", "长(L)") + 
-                                                 String.format("%-8s", "宽(W)") + 
-                                                 String.format("%-8s", "高(H)") + 
-                                                 String.format("%-8s", "旋转"));
-                                System.out.println("    " + repeatStr("-", 58));
-                                
-                                for (ProgramEntity.PlaceItem pi : sol.placeItemList) {
-                                    System.out.println("    " + 
-                                        String.format("%-8s", "J" + pi.name) + 
-                                        String.format("%-10.2f", pi.x) + 
-                                        String.format("%-10.2f", pi.y) + 
-                                        String.format("%-8.2f", pi.l) + 
-                                        String.format("%-8.2f", pi.w) + 
-                                        String.format("%-8.2f", pi.h) + 
-                                        String.format("%-8s", pi.isRotate ? "是" : "否"));
-                                }
-                                
-                                // 验证是否超出打印机范围
-                                System.out.println("\n    【位置验证】");
-                                boolean batchValid = true;
-                                for (ProgramEntity.PlaceItem pi : sol.placeItemList) {
-                                    double endX = pi.x + pi.l;
-                                    double endY = pi.y + pi.w;
-                                    if (endX > pm.L || endY > pm.W) {
-                                        System.out.println("    ❌ 工件J" + pi.name + " 超出打印机范围! " +
-                                                         "位置[" + String.format("%.2f", pi.x) + "," + String.format("%.2f", pi.y) + "] " +
-                                                         "尺寸[" + String.format("%.2f", pi.l) + "x" + String.format("%.2f", pi.w) + "] " +
-                                                         "→ 终点[" + String.format("%.2f", endX) + "," + String.format("%.2f", endY) + "] " +
-                                                         "超出平台[" + String.format("%.0f", pm.L) + "x" + String.format("%.0f", pm.W) + "]");
-                                        batchValid = false;
-                                        hasError = true;
-                                    }
-                                    if (pi.h > pm.H) {
-                                        System.out.println("    ❌ 工件J" + pi.name + " 高度超出! " +
-                                                         "工件高度=" + String.format("%.2f", pi.h) + 
-                                                         " > 打印机最大高度=" + String.format("%.0f", pm.H));
-                                        batchValid = false;
-                                        hasError = true;
-                                    }
-                                }
-                                
-                                // 验证是否有重叠
-                                for (int i = 0; i < sol.placeItemList.size(); i++) {
-                                    ProgramEntity.PlaceItem pi1 = sol.placeItemList.get(i);
-                                    for (int j = i + 1; j < sol.placeItemList.size(); j++) {
-                                        ProgramEntity.PlaceItem pi2 = sol.placeItemList.get(j);
-                                        if (isOverlap(pi1, pi2)) {
-                                            System.out.println("    ❌ 工件J" + pi1.name + " 与 工件J" + pi2.name + " 重叠!");
-                                            batchValid = false;
-                                            hasError = true;
-                                        }
-                                    }
-                                }
-                                
-                                if (batchValid) {
-                                    System.out.println("    ✓ 批次" + batchNo + "位置验证通过");
-                                }
-                            }
-                            batchNo++;
-                        }
-                    }
-                } else {
-                    System.out.println("  (无工件分配)");
-                }
-            }
-            
-            // 打印阶段总结
-            System.out.println("\n" + repeatStr("-", 60));
-            if (hasError) {
-                System.out.println("【3D打印阶段验证结果】❌ 存在位置错误，请检查!");
-            } else {
-                System.out.println("【3D打印阶段验证结果】✓ 所有工件位置正确，无重叠，无越界");
-            }
-        } else {
-            System.out.println("  打印解决方案未初始化");
-        }
-        
-        // ==================== 第二部分：甘特图数据 ====================
-        System.out.println("\n\n【甘特图数据】");
-        System.out.println(repeatStr("-", 60));
-        
-        // 获取机器矩阵
-        getMachineMatrix();
-        
-        String[] machineTypes = new String[machineCount];
-        for (int i = 0; i < machineCount; i++) {
-            if (i < printMachineCount) {
-                machineTypes[i] = "打印机";
-            } else if (i < printMachineCount + batchMachineCount) {
-                machineTypes[i] = "批处理机";
-            } else {
-                machineTypes[i] = "离散加工机";
-            }
-        }
-        
-        for (int m = 0; m < machineCount; m++) {
-            System.out.println("\n▶ 机器 " + (m + 1) + " (" + machineTypes[m] + "):");
-            if (machineMatrix != null && machineMatrix[m] != null && machineMatrix[m].length > 0) {
-                System.out.println("  " + String.format("%-8s", "工件") + 
-                                 String.format("%-8s", "工序") + 
-                                 String.format("%-12s", "开始时间") + 
-                                 String.format("%-12s", "结束时间") + 
-                                 String.format("%-10s", "持续时间"));
-                System.out.println("  " + repeatStr("-", 50));
-                for (Operation op : machineMatrix[m]) {
-                    String opType;
-                    if (op.task == 0) opType = "打印";
-                    else if (op.task == 1) opType = "批处理";
-                    else opType = "离散" + (op.task - 1);
-                    
-                    System.out.println("  " + 
-                        String.format("%-8s", "J" + op.jobNo) + 
-                        String.format("%-8s", opType) + 
-                        String.format("%-12.2f", op.startTime) + 
-                        String.format("%-12.2f", op.endTime) + 
-                        String.format("%-10.2f", op.endTime - op.startTime));
-                }
-            } else {
-                System.out.println("  (空闲)");
-            }
-        }
-        
-        // ==================== 第三部分：按工件视角的甘特图 ====================
-        System.out.println("\n\n【按工件视角的调度结果】");
-        System.out.println(repeatStr("-", 60));
-        
-        for (int j = 0; j < jobCount; j++) {
-            System.out.println("\n▶ 工件 J" + j + " (共" + operationMatrix[j].length + "道工序):");
-            System.out.println("  " + String.format("%-10s", "工序") + 
-                             String.format("%-12s", "机器") + 
-                             String.format("%-12s", "开始时间") + 
-                             String.format("%-12s", "结束时间") + 
-                             String.format("%-10s", "持续时间"));
-            System.out.println("  " + repeatStr("-", 56));
-            
-            for (int op = 0; op < operationMatrix[j].length; op++) {
-                Operation o = operationMatrix[j][op];
-                String opType;
-                String machType;
-                if (op == 0) {
-                    opType = "打印";
-                    machType = "打印机" + o.machineNo;
-                } else if (op == 1) {
-                    opType = "批处理";
-                    machType = "批处理机" + (o.machineNo - printMachineCount);
-                } else {
-                    opType = "离散" + (op - 1);
-                    machType = "离散机" + (o.machineNo - printMachineCount - batchMachineCount);
-                }
-                
-                System.out.println("  " + 
-                    String.format("%-10s", opType) + 
-                    String.format("%-12s", machType) + 
-                    String.format("%-12.2f", o.startTime) + 
-                    String.format("%-12.2f", o.endTime) + 
-                    String.format("%-10.2f", o.endTime - o.startTime));
-            }
-        }
-        
-        // ==================== 第四部分：统计信息 ====================
-        System.out.println("\n\n【统计信息】");
-        System.out.println(repeatStr("-", 60));
-        System.out.println("  最大完工时间 (Makespan): " + String.format("%.2f", cost));
-        System.out.println("  工件数量: " + jobCount);
-        System.out.println("  机器数量: " + machineCount + 
-                         " (打印机:" + printMachineCount + 
-                         ", 批处理机:" + batchMachineCount + 
-                         ", 离散机:" + (machineCount - printMachineCount - batchMachineCount) + ")");
-        
-        // 计算机器利用率
-        double totalTime = cost;
-        System.out.println("\n  机器利用率:");
-        for (int m = 0; m < machineCount; m++) {
-            double busyTime = 0;
-            if (machineMatrix != null && machineMatrix[m] != null) {
-                for (Operation op : machineMatrix[m]) {
-                    busyTime += (op.endTime - op.startTime);
-                }
-            }
-            double utilization = (totalTime > 0) ? (busyTime / totalTime * 100) : 0;
-            System.out.println("    机器" + (m + 1) + " (" + machineTypes[m] + "): " + 
-                             String.format("%.1f%%", utilization) + 
-                             " (工作时间: " + String.format("%.2f", busyTime) + ")");
-        }
-        
-        System.out.println("\n" + repeatStr("=", 80));
-    }
-
     public void getMachineMatrix() {
         int machineCount = problem.getMachineCount();
         ArrayList<Operation> matrix[] = new ArrayList[machineCount];
@@ -375,10 +100,7 @@ public class Solution {
         for (int i = 0; i < operationMatrix.length; i++) {
             for (int j = 0; j < operationMatrix[i].length; j++) {
                 Operation tempOperation = operationMatrix[i][j];
-                // machineNo是1-based，需要-1转为0-based索引
-                int machIdx = tempOperation.machineNo - 1;
-                if (machIdx < 0 || machIdx >= machineCount) continue; // 跳过无效机器
-                ArrayList<Operation> machine = matrix[machIdx];
+                ArrayList<Operation> machine = matrix[tempOperation.machineNo];
                 int k;
                 if (machine.size() == 0 || tempOperation.endTime <= machine.get(0).startTime)
                     machine.add(0, new Operation(tempOperation));
@@ -472,87 +194,78 @@ public class Solution {
 //    }
 
     public Chromosome toChromosome() {
-        chromosome = new Chromosome(r);
+        // 计算染色体长度：jobCount（打印工序） + 离散工序数量（不包括批处理工序）
         int jobCount = problem.getJobCount();
-        
-        // 新染色体结构：打印工序(jobCount) + 离散工序(totalOps - 2*jobCount)
-        // 不包含批处理工序
-        int chromosomeLen = 0;
+        int[] operCountArr = problem.getOperationCountArr();
+        int discreteOpCount = 0;
         for (int i = 0; i < jobCount; i++) {
-            chromosomeLen += (problem.getOperationCountArr()[i] - 1); // 不含批处理
+            // 每个工件的工序数 - 2（打印和批处理） = 离散工序数
+            if (operCountArr[i] > 2) {
+                discreteOpCount += (operCountArr[i] - 2);
+            }
         }
+        int chromosomeLength = jobCount + discreteOpCount;  // 打印工序 + 离散工序
         
-        chromosome.gene_MS = new int[chromosomeLen];
-        chromosome.gene_OS = new int[chromosomeLen];
+        // System.out.println("\n===== Solution.toChromosome() 开始 =====");
+        // System.out.println("jobCount=" + jobCount + ", discreteOpCount=" + discreteOpCount + ", chromosomeLength=" + chromosomeLength);
+        
+        chromosome.gene_MS = new int[chromosomeLength];
+        chromosome.gene_OS = new int[chromosomeLength];
 
-        // 分离打印工序和离散工序
-        ArrayList<Operation> printOps = new ArrayList<>();
-        ArrayList<Operation> discreteOps = new ArrayList<>();
+        // 收集所有工序并按开始时间排序
+        ArrayList<Operation> state = new ArrayList<Operation>();
+        for(Operation[] ops :operationMatrix)
+            for(Operation o :ops)
+                state.add(o);
+        state.sort((o1, o2) -> ((Double)o1.startTime).compareTo(o2.startTime));
         
-        for (Operation[] ops : operationMatrix) {
-            for (Operation o : ops) {
-                if (o.task == 0) {
-                    // 打印工序（工序0）
-                    printOps.add(o);
-                } else if (o.task >= 2) {
-                    // 离散工序（工序2及以后）
-                    discreteOps.add(o);
+        // System.out.println("总工序数（包括批处理）: " + state.size());
+        
+        // 分别填充打印工序段和离散工序段
+        int printIndex = 0;  // 打印工序在染色体中的位置（0 到 jobCount-1）
+        int discreteIndex = jobCount;  // 离散工序在染色体中的位置（jobCount 到 chromosomeLength-1）
+        
+        int batchSkipped = 0;
+        for(Operation o : state) {
+            // 跳过批处理工序（task == 1）
+            if (o.task == 1) {
+                batchSkipped++;
+                continue;
+            }
+            
+            // gene_MS直接存储实际机器编号（1-based）
+            // o.machineNo是0-based的数组索引，需要转换为1-based机器编号
+            int machineNo = o.machineNo + 1;  // 转换为1-based机器编号
+            
+            // 根据工序类型填充到相应位置
+            if (o.task == 0) {
+                // 打印工序（task == 0）
+                if (printIndex < jobCount) {
+                    chromosome.gene_OS[printIndex] = o.jobNo;
+                    chromosome.gene_MS[printIndex] = machineNo;
+                    printIndex++;
                 }
-                // 批处理工序（工序1）不加入染色体
-            }
-        }
-
-        // 按开始时间排序
-        printOps.sort((o1, o2) -> Double.compare(o1.startTime, o2.startTime));
-        discreteOps.sort((o1, o2) -> Double.compare(o1.startTime, o2.startTime));
-
-        int printMachineCount = problem.getPrintMachineCount();
-        int batchMachineCount = problem.getBatchMachineCount();
-        int discreteMachineStart = printMachineCount + batchMachineCount + 1; // 离散机器起始编号(1-based)
-        
-        // 填充打印工序部分（前jobCount个基因）
-        // 确保每个工件恰好出现一次（有效排列）
-        boolean[] jobUsed = new boolean[jobCount];
-        Arrays.fill(jobUsed, false);
-        int fillIdx = 0;
-        
-        // 首先按时间顺序填充（去重）
-        for (int i = 0; i < printOps.size() && fillIdx < jobCount; i++) {
-            Operation o = printOps.get(i);
-            if (o.jobNo >= 0 && o.jobNo < jobCount && !jobUsed[o.jobNo]) {
-                chromosome.gene_OS[fillIdx] = o.jobNo;
-                int machNo = o.machineNo;
-                if (machNo < 1 || machNo > printMachineCount) {
-                    machNo = 1;
+            } else {
+                // 离散工序（task >= 2）
+                if (discreteIndex < chromosomeLength) {
+                    chromosome.gene_OS[discreteIndex] = o.jobNo;
+                    chromosome.gene_MS[discreteIndex] = machineNo;
+                    discreteIndex++;
                 }
-                chromosome.gene_MS[fillIdx] = machNo;
-                jobUsed[o.jobNo] = true;
-                fillIdx++;
             }
         }
         
-        // 填充缺失的工件
-        for (int j = 0; j < jobCount && fillIdx < jobCount; j++) {
-            if (!jobUsed[j]) {
-                chromosome.gene_OS[fillIdx] = j;
-                chromosome.gene_MS[fillIdx] = 1; // 默认打印机1
-                fillIdx++;
-            }
-        }
+        // System.out.println("跳过的批处理工序数: " + batchSkipped);
+        // System.out.println("最终 printIndex=" + printIndex + ", discreteIndex=" + discreteIndex);
+        // System.out.print("生成的 gene_MS前10: [");
+        // for (int i = 0; i < Math.min(10, chromosome.gene_MS.length); i++) {
+        //     System.out.print(chromosome.gene_MS[i] + (i < Math.min(10, chromosome.gene_MS.length) - 1 ? ", " : ""));
+        // }
+        // System.out.println("]");
+        // System.out.println("===== Solution.toChromosome() 结束 =====\n");
 
-        // 填充离散工序部分（从jobCount开始）
-        for (int i = 0; i < discreteOps.size() && (jobCount + i) < chromosomeLen; i++) {
-            Operation o = discreteOps.get(i);
-            chromosome.gene_OS[jobCount + i] = o.jobNo;
-            // 确保离散工序的机器号在离散机器范围内
-            int machNo = o.machineNo;
-            if (machNo < discreteMachineStart) {
-                machNo = discreteMachineStart; // 默认使用第一台离散机器
-            }
-            chromosome.gene_MS[jobCount + i] = machNo;
-        }
-
-        chromosome.fitness = 1.0 / cost;
+        // 使用与GA.java相同的FITNESS_SCALE，确保fitness值一致
+        chromosome.fitness = FITNESS_SCALE / cost;
         return chromosome;
     }
 
@@ -564,27 +277,23 @@ public class Solution {
             Arrays.fill(exist[i], false);
             exist[operationMatrix[i][0].jobNo][operationMatrix[i][0].task] = true;
 
-            // 打印工序和批处理工序的时间不从proDesMatrix获取，跳过检查
-            // 只检查离散工序（task >= 2）
+            if (operationMatrix[i][0].endTime - operationMatrix[i][0].startTime != problem.getProDesMatrix()[problem.getOperationToIndex()[i][0]][operationMatrix[i][0].machineNo]) {
+                System.out.println("工序对应加工时间错误！:" + "job " + i + " task " + 0);
+                System.out.println("true time:" + problem.getProDesMatrix()[problem.getOperationToIndex()[i][0]][operationMatrix[i][0].machineNo]);
+                return false;
+            }
             for (int j = 1; j < problem.getOperationCountArr()[i]; j++) {
                 Operation o = operationMatrix[i][j];
+                if (o.endTime - o.startTime != problem.getProDesMatrix()[problem.getOperationToIndex()[i][j]][o.machineNo]) {
+                    System.out.println("工序对应加工时间错误！:" + "job " + i + " task " + j);
+                    return false;
+                }
                 Operation before = operationMatrix[i][j - 1];
                 if (before.endTime > o.startTime) {
                     System.out.println("同一工件对应工序顺序错误！");
                     return false;
                 }
                 exist[o.jobNo][o.task] = true;
-                
-                // 只检查离散工序的加工时间
-                if (o.task >= 2) {
-                    int machIdx = o.machineNo - 1; // 转为0-based索引
-                    double expectedTime = problem.getProDesMatrix()[problem.getOperationToIndex()[i][j]][machIdx];
-                    if (Math.abs((o.endTime - o.startTime) - expectedTime) > 0.001) {
-                        System.out.println("工序对应加工时间错误！:" + "job " + i + " task " + j);
-                        System.out.println("实际时间:" + (o.endTime - o.startTime) + ", 期望时间:" + expectedTime);
-                        return false;
-                    }
-                }
             }
         }
 
@@ -611,8 +320,8 @@ public class Solution {
         for (Operation[] o : operationMatrix)
             if (o[o.length - 1].endTime > longest) longest = o[o.length - 1].endTime;
 
-        if (Math.abs(longest - cost) > 0.001) {
-            System.out.println("解计算错误！longest=" + longest + ", cost=" + cost);
+        if (longest != cost) {
+            System.out.println("解计算错误！");
             return false;
         }
 

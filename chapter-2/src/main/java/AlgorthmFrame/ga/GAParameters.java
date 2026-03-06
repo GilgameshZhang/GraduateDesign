@@ -3,7 +3,7 @@ package AlgorthmFrame.ga;
 public class GAParameters {
     //GA parameter
     private double crossoverRate = 0.8;// there are 90 percent posibility for an individual to crossover
-    private double mutationRate = 0.10;// there are 5 percent posibility for an individual to crossover
+    private double mutationRate = 0.3;// there are 5 percent posibility for an individual to crossover
     private int loopCount = 500;// to caculate 5 times,one time for 200 crossover or mutation
     private int populationCount = 400;// there are 15 individuals for a generation
     private int iteratorCount = 200;// iterator for 200 time for each loop

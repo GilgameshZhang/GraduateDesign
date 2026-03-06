@@ -15,7 +15,7 @@ public class RunAlgorithmExample {
 
     public static void main(String[] args) {
         // Set instance file path
-        String instancePath = "C:\\Users\\Zhang Hailong\\Desktop\\毕设相关\\毕设程序\\Article\\chapter-2\\src\\main\\resources\\test_instance_small_2m_5j.txt";
+        String instancePath = "C:\\Users\\Zhang Hailong\\Desktop\\毕设相关\\毕设程序\\Article\\chapter-2\\src\\main\\resources\\instance\\J100\\J100P4B2D10_05.txt";
 
         System.out.println("====================================================");
         System.out.println(" 3D Printing Workshop Scheduling - GA Example");

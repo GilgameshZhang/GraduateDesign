@@ -1,0 +1,117 @@
+====================================================================
+                        项目文件清单
+====================================================================
+
+本文档列出了chapter-2项目的主要文件结构。
+
+====================================================================
+一、源代码文件
+====================================================================
+
+【算法框架】src/main/java/AlgorthmFrame/
+├── ga/
+│   ├── GA.java                      - 遗传算法主类（含调试功能）
+│   ├── GAParameters.java            - GA参数定义
+│   └── ChromosomeOperation.java     - 染色体操作（交叉、变异）
+
+【问题框架】src/main/java/ProblemFrame/
+├── Chromosome.java                  - 染色体表示
+├── CaculateFitness.java             - 适应度计算
+├── SkyLinePacking.java              - 2D装箱算法
+├── Batch.java                       - 批次类
+└── Solution.java                    - 解类
+
+【实体类】src/main/java/ProgramEntity/
+├── Problem.java                     - 问题实例
+├── Input.java                       - 算例读取
+├── Job.java                         - 工件
+├── Item.java                        - 零件
+├── Operation.java                   - 工序
+├── PlaceItem.java                   - 已放置零件
+├── SkyLine.java                     - 天际线
+├── BatchOperation.java              - 批处理工序
+└── Machine/
+    ├── Machine.java                 - 机器基类
+    ├── PrintMachine.java            - 打印机
+    ├── BathchMachine.java           - 批处理机
+    └── DiscreteProcessingMachine.java - 离散机
+
+【工具类】src/main/java/util/
+├── compareUtil.java                 - 比较工具
+└── ReadDataUtil.java                - 数据读取工具
+
+====================================================================
+二、测试程序
+====================================================================
+
+src/test/java/
+├── RunAlgorithmExample.java         - 基础运行示例
+├── TestGAWithDebug.java             - 调试模式测试
+├── RunAllInstances.java             - 批量运行所有算例
+├── TestInstanceValidator.java       - 算例验证工具
+├── InstanceStatistics.java          - 算例统计工具
+├── SimpleInstanceReader.java        - 简单算例读取器
+└── DebugTest.java                   - 调试测试类
+
+====================================================================
+三、测试算例
+====================================================================
+
+src/main/resources/
+├── test_instance_small_2m_5j.txt              - 小型(5工件)
+├── test_instance_small_parts_3m_12j.txt       - 小型多零件
+├── test_instance_medium_3m_10j.txt            - 中型(10工件)
+├── test_instance_complex_3m_15j_5ops.txt      - 复杂(15工件)
+├── test_instance_large_4m_20j.txt             - 大型(20工件)
+├── test_instance_large_parts_2m_8j.txt        - 大零件
+├── test_instance_multi_ops_4m_25j_6ops.txt    - 超大(25工件)
+└── test_instance_xlarge_5m_30j.txt            - 超大(30工件)
+
+====================================================================
+四、文档文件
+====================================================================
+
+【项目根目录】chapter-2/
+├── 快速参考卡.txt                   - 快速命令参考
+├── GA调试模式使用说明.md            - 调试模式详细说明
+├── GA调试快速参考.txt               - 调试模式快速参考
+├── Bug修复说明_NullPointerException.txt - Bug修复记录
+└── 文件清单.txt                     - 本文件
+
+【资源目录】src/main/resources/
+├── 算例格式说明.txt                 - 算例文件格式说明
+├── README_测试算例说明.txt          - 算例详细说明
+├── 测试算例索引.md                  - 算例索引(Markdown)
+├── 算例生成汇总.txt                 - 算例生成报告
+├── 算例格式修正说明.txt             - 格式修正记录
+├── 如何运行算法_完整指南.txt       - 完整运行指南
+└── QUICK_START.md                   - 5分钟快速开始
+
+====================================================================
+五、配置文件
+====================================================================
+
+├── pom.xml                          - Maven配置
+└── chapter-2.iml                    - IntelliJ IDEA配置
+
+====================================================================
+六、编译输出
+====================================================================
+
+target/
+├── classes/                         - 编译后的.class文件
+├── generated-sources/               - 生成的源代码
+└── test-classes/                    - 测试类编译输出
+
+====================================================================
+七、文件统计
+====================================================================
+
+源代码文件：约25个Java文件
+测试程序：7个Java文件
+测试算例：8个txt文件
+文档文件：12个文档
+总代码量：约6000+行
+
+====================================================================
+

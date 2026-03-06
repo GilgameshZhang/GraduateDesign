@@ -1,0 +1,118 @@
+================================================================================
+统计显著性检验报告
+================================================================================
+
+检验方法: Wilcoxon秩和检验 (成对比较)
+显著性水平: α = 0.05
+
+--------------------------------------------------------------------------------
+Hypervolume (HV) 检验结果
+--------------------------------------------------------------------------------
+
+NSGA-II vs NSGA-II-Basic:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 NSGA-II-Basic
+
+NSGA-II vs MOEA/D:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 MOEA/D
+
+NSGA-II vs MOGWO:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 MOGWO
+
+NSGA-II vs SPEA2:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 SPEA2
+
+NSGA-II-Basic vs MOEA/D:
+  p-value = 0.003906
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II-Basic 优于 MOEA/D
+
+NSGA-II-Basic vs MOGWO:
+  p-value = 0.003906
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 NSGA-II-Basic
+
+NSGA-II-Basic vs SPEA2:
+  p-value = 0.232422
+  结论: 差异不显著 (p ≥ 0.05)
+  NSGA-II-Basic 优于 SPEA2
+
+MOEA/D vs MOGWO:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 MOEA/D
+
+MOEA/D vs SPEA2:
+  p-value = 0.013672
+  结论: 差异显著 (p < 0.05) *
+  SPEA2 优于 MOEA/D
+
+MOGWO vs SPEA2:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 SPEA2
+
+--------------------------------------------------------------------------------
+IGD 检验结果
+--------------------------------------------------------------------------------
+
+NSGA-II vs NSGA-II-Basic:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 NSGA-II-Basic
+
+NSGA-II vs MOEA/D:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 MOEA/D
+
+NSGA-II vs MOGWO:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 MOGWO
+
+NSGA-II vs SPEA2:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II 优于 SPEA2
+
+NSGA-II-Basic vs MOEA/D:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  NSGA-II-Basic 优于 MOEA/D
+
+NSGA-II-Basic vs MOGWO:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 NSGA-II-Basic
+
+NSGA-II-Basic vs SPEA2:
+  p-value = 0.275391
+  结论: 差异不显著 (p ≥ 0.05)
+  NSGA-II-Basic 优于 SPEA2
+
+MOEA/D vs MOGWO:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 MOEA/D
+
+MOEA/D vs SPEA2:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  SPEA2 优于 MOEA/D
+
+MOGWO vs SPEA2:
+  p-value = 0.001953
+  结论: 差异极显著 (p < 0.01) **
+  MOGWO 优于 SPEA2
+
+================================================================================
+报告结束
+================================================================================

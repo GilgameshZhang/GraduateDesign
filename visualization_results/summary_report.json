@@ -1,0 +1,406 @@
+{
+  "makespan" : 51526.89010989011,
+  "job_count" : 100,
+  "machine_count" : 16,
+  "printer_count" : 4,
+  "batch_machine_count" : 2,
+  "discrete_machine_count" : 10,
+  "machine_utilization" : [ {
+    "machine_id" : 1,
+    "name" : "打印机1",
+    "utilization" : 8.000618689014825,
+    "busy_time" : 412247.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 2,
+    "name" : "打印机2",
+    "utilization" : 16.37918108266098,
+    "busy_time" : 843968.2637362634,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 3,
+    "name" : "打印机3",
+    "utilization" : 7.628349550962184,
+    "busy_time" : 393065.12903225806,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 4,
+    "name" : "打印机4",
+    "utilization" : 2.7861957066266685,
+    "busy_time" : 143563.99999999997,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 5,
+    "name" : "批处理机1",
+    "utilization" : 0.0,
+    "busy_time" : 0.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 6,
+    "name" : "批处理机2",
+    "utilization" : 1.474958023624494,
+    "busy_time" : 76000.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 7,
+    "name" : "离散处理机1",
+    "utilization" : 0.6939289354304922,
+    "busy_time" : 35756.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 8,
+    "name" : "离散处理机2",
+    "utilization" : 0.6837206733196174,
+    "busy_time" : 35230.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 9,
+    "name" : "离散处理机3",
+    "utilization" : 0.7092025139119721,
+    "busy_time" : 36543.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 10,
+    "name" : "离散处理机4",
+    "utilization" : 0.6231891723237648,
+    "busy_time" : 32111.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 11,
+    "name" : "离散处理机5",
+    "utilization" : 0.6893682099627059,
+    "busy_time" : 35521.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 12,
+    "name" : "离散处理机6",
+    "utilization" : 0.7141319788856645,
+    "busy_time" : 36797.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 13,
+    "name" : "离散处理机7",
+    "utilization" : 0.6927256802006933,
+    "busy_time" : 35694.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 14,
+    "name" : "离散处理机8",
+    "utilization" : 0.6654195494212239,
+    "busy_time" : 34287.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 15,
+    "name" : "离散处理机9",
+    "utilization" : 0.6600243082295449,
+    "busy_time" : 34009.0,
+    "total_time" : 51526.89010989011
+  }, {
+    "machine_id" : 16,
+    "name" : "离散处理机10",
+    "utilization" : 0.7130645750527783,
+    "busy_time" : 36742.0,
+    "total_time" : 51526.89010989011
+  } ],
+  "job_completion_times" : [ {
+    "job_id" : 0,
+    "completion_time" : 47605.0
+  }, {
+    "job_id" : 1,
+    "completion_time" : 44199.89010989011
+  }, {
+    "job_id" : 2,
+    "completion_time" : 36244.58241758242
+  }, {
+    "job_id" : 3,
+    "completion_time" : 50665.89010989011
+  }, {
+    "job_id" : 4,
+    "completion_time" : 42447.89010989011
+  }, {
+    "job_id" : 5,
+    "completion_time" : 44155.0
+  }, {
+    "job_id" : 6,
+    "completion_time" : 50423.0
+  }, {
+    "job_id" : 7,
+    "completion_time" : 46117.89010989011
+  }, {
+    "job_id" : 8,
+    "completion_time" : 44938.89010989011
+  }, {
+    "job_id" : 9,
+    "completion_time" : 20248.0
+  }, {
+    "job_id" : 10,
+    "completion_time" : 46376.89010989011
+  }, {
+    "job_id" : 11,
+    "completion_time" : 34918.58241758242
+  }, {
+    "job_id" : 12,
+    "completion_time" : 49851.89010989011
+  }, {
+    "job_id" : 13,
+    "completion_time" : 17306.0
+  }, {
+    "job_id" : 14,
+    "completion_time" : 50643.89010989011
+  }, {
+    "job_id" : 15,
+    "completion_time" : 37113.1935483871
+  }, {
+    "job_id" : 16,
+    "completion_time" : 48870.0
+  }, {
+    "job_id" : 17,
+    "completion_time" : 27059.582417582416
+  }, {
+    "job_id" : 18,
+    "completion_time" : 36410.58241758242
+  }, {
+    "job_id" : 19,
+    "completion_time" : 35266.58241758242
+  }, {
+    "job_id" : 20,
+    "completion_time" : 26146.0
+  }, {
+    "job_id" : 21,
+    "completion_time" : 45575.0
+  }, {
+    "job_id" : 22,
+    "completion_time" : 39159.1935483871
+  }, {
+    "job_id" : 23,
+    "completion_time" : 40637.89010989011
+  }, {
+    "job_id" : 24,
+    "completion_time" : 51480.89010989011
+  }, {
+    "job_id" : 25,
+    "completion_time" : 49433.0
+  }, {
+    "job_id" : 26,
+    "completion_time" : 50598.89010989011
+  }, {
+    "job_id" : 27,
+    "completion_time" : 49424.89010989011
+  }, {
+    "job_id" : 28,
+    "completion_time" : 48744.0
+  }, {
+    "job_id" : 29,
+    "completion_time" : 42629.89010989011
+  }, {
+    "job_id" : 30,
+    "completion_time" : 30289.582417582416
+  }, {
+    "job_id" : 31,
+    "completion_time" : 49192.89010989011
+  }, {
+    "job_id" : 32,
+    "completion_time" : 47468.0
+  }, {
+    "job_id" : 33,
+    "completion_time" : 28282.582417582416
+  }, {
+    "job_id" : 34,
+    "completion_time" : 44762.0
+  }, {
+    "job_id" : 35,
+    "completion_time" : 46420.89010989011
+  }, {
+    "job_id" : 36,
+    "completion_time" : 49122.89010989011
+  }, {
+    "job_id" : 37,
+    "completion_time" : 47916.89010989011
+  }, {
+    "job_id" : 38,
+    "completion_time" : 47993.0
+  }, {
+    "job_id" : 39,
+    "completion_time" : 45729.89010989011
+  }, {
+    "job_id" : 40,
+    "completion_time" : 23734.0
+  }, {
+    "job_id" : 41,
+    "completion_time" : 34672.58241758242
+  }, {
+    "job_id" : 42,
+    "completion_time" : 49886.89010989011
+  }, {
+    "job_id" : 43,
+    "completion_time" : 51421.89010989011
+  }, {
+    "job_id" : 44,
+    "completion_time" : 34376.58241758242
+  }, {
+    "job_id" : 45,
+    "completion_time" : 47400.89010989011
+  }, {
+    "job_id" : 46,
+    "completion_time" : 48196.89010989011
+  }, {
+    "job_id" : 47,
+    "completion_time" : 41946.89010989011
+  }, {
+    "job_id" : 48,
+    "completion_time" : 49948.89010989011
+  }, {
+    "job_id" : 49,
+    "completion_time" : 48133.89010989011
+  }, {
+    "job_id" : 50,
+    "completion_time" : 34603.58241758242
+  }, {
+    "job_id" : 51,
+    "completion_time" : 35319.58241758242
+  }, {
+    "job_id" : 52,
+    "completion_time" : 50161.89010989011
+  }, {
+    "job_id" : 53,
+    "completion_time" : 46864.0
+  }, {
+    "job_id" : 54,
+    "completion_time" : 25273.0
+  }, {
+    "job_id" : 55,
+    "completion_time" : 51138.89010989011
+  }, {
+    "job_id" : 56,
+    "completion_time" : 41252.89010989011
+  }, {
+    "job_id" : 57,
+    "completion_time" : 50871.89010989011
+  }, {
+    "job_id" : 58,
+    "completion_time" : 47150.89010989011
+  }, {
+    "job_id" : 59,
+    "completion_time" : 20128.75824175824
+  }, {
+    "job_id" : 60,
+    "completion_time" : 51468.0
+  }, {
+    "job_id" : 61,
+    "completion_time" : 49394.89010989011
+  }, {
+    "job_id" : 62,
+    "completion_time" : 47620.89010989011
+  }, {
+    "job_id" : 63,
+    "completion_time" : 45267.89010989011
+  }, {
+    "job_id" : 64,
+    "completion_time" : 47807.89010989011
+  }, {
+    "job_id" : 65,
+    "completion_time" : 47901.89010989011
+  }, {
+    "job_id" : 66,
+    "completion_time" : 25953.0
+  }, {
+    "job_id" : 67,
+    "completion_time" : 49284.89010989011
+  }, {
+    "job_id" : 68,
+    "completion_time" : 51526.89010989011
+  }, {
+    "job_id" : 69,
+    "completion_time" : 50797.0
+  }, {
+    "job_id" : 70,
+    "completion_time" : 50765.89010989011
+  }, {
+    "job_id" : 71,
+    "completion_time" : 44163.89010989011
+  }, {
+    "job_id" : 72,
+    "completion_time" : 33420.58241758242
+  }, {
+    "job_id" : 73,
+    "completion_time" : 45586.89010989011
+  }, {
+    "job_id" : 74,
+    "completion_time" : 48198.0
+  }, {
+    "job_id" : 75,
+    "completion_time" : 48846.0
+  }, {
+    "job_id" : 76,
+    "completion_time" : 47812.89010989011
+  }, {
+    "job_id" : 77,
+    "completion_time" : 46257.0
+  }, {
+    "job_id" : 78,
+    "completion_time" : 45931.89010989011
+  }, {
+    "job_id" : 79,
+    "completion_time" : 49184.89010989011
+  }, {
+    "job_id" : 80,
+    "completion_time" : 50634.89010989011
+  }, {
+    "job_id" : 81,
+    "completion_time" : 21199.0
+  }, {
+    "job_id" : 82,
+    "completion_time" : 49982.89010989011
+  }, {
+    "job_id" : 83,
+    "completion_time" : 44427.89010989011
+  }, {
+    "job_id" : 84,
+    "completion_time" : 49888.89010989011
+  }, {
+    "job_id" : 85,
+    "completion_time" : 28804.0
+  }, {
+    "job_id" : 86,
+    "completion_time" : 50483.89010989011
+  }, {
+    "job_id" : 87,
+    "completion_time" : 43929.89010989011
+  }, {
+    "job_id" : 88,
+    "completion_time" : 45194.89010989011
+  }, {
+    "job_id" : 89,
+    "completion_time" : 46288.0
+  }, {
+    "job_id" : 90,
+    "completion_time" : 46986.0
+  }, {
+    "job_id" : 91,
+    "completion_time" : 50073.0
+  }, {
+    "job_id" : 92,
+    "completion_time" : 29604.582417582416
+  }, {
+    "job_id" : 93,
+    "completion_time" : 48678.89010989011
+  }, {
+    "job_id" : 94,
+    "completion_time" : 49500.0
+  }, {
+    "job_id" : 95,
+    "completion_time" : 27834.999999999996
+  }, {
+    "job_id" : 96,
+    "completion_time" : 49712.0
+  }, {
+    "job_id" : 97,
+    "completion_time" : 36814.0
+  }, {
+    "job_id" : 98,
+    "completion_time" : 35875.58241758242
+  }, {
+    "job_id" : 99,
+    "completion_time" : 36316.0
+  } ]
+}

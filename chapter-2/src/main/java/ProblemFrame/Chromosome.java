@@ -2,8 +2,15 @@ package ProblemFrame;
 
 import ProgramEntity.Job;
 import ProgramEntity.Solution;
+import ProgramEntity.Item;
+import ProgramEntity.Machine.Machine;
+import ProgramEntity.Machine.PrintMachine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 
 public class Chromosome implements Comparable<Chromosome> {
     public int[] gene_OS;
@@ -17,70 +24,79 @@ public class Chromosome implements Comparable<Chromosome> {
         this.r = r;
     }
 
-    public Chromosome(Job[] entries, Random r) {
+    public Chromosome(Job[] entries, Random r, ProgramEntity.Problem problem) {
         this.r = r;
-        int jobCount = entries.length;
+        ArrayList<Integer> os = new ArrayList<>();
+        // 批处理阶段不在染色体中，只包含打印工序和离散工序
+        ArrayList<Integer> printOps = new ArrayList<>();
+        ArrayList<Integer> discreteOps = new ArrayList<>();
         
-        // 计算染色体中需要编码的工序数
-        // 染色体只包含：打印工序（每个工件1次） + 离散工序（每个工件opsNr-2次）
-        // 批处理工序（第2道）不在染色体中体现，由算法自动安排
-        int totalGenesInChromosome = 0;
-        for (Job e : entries) {
-            // 打印工序1次 + 离散工序(opsNr-2)次 = opsNr-1次
-            totalGenesInChromosome += (e.opsNr - 1);
-        }
-        
-        // ============ 第一部分：打印工序（每个工件一次） ============
-        // 前jobCount个基因专门用于打印阶段的机器分配
-        ArrayList<Integer> printOs = new ArrayList<>();
-        for (int i = 0; i < jobCount; i++) {
-            printOs.add(i); // 每个工件只出现一次
-        }
-        Collections.shuffle(printOs, this.r); // shuffle决定打印顺序
-        
-        // ============ 第二部分：离散工序（跳过批处理） ============
-        // 每个工件的离散工序（工序2及之后，因为工序0是打印，工序1是批处理）
-        ArrayList<Integer> discreteOs = new ArrayList<>();
-        for (int i = 0; i < jobCount; i++) {
-            for (int j = 2; j < entries[i].opsNr; j++) { // 从工序2开始（离散工序）
-                discreteOs.add(i);
+        for (int i = 0; i < entries.length; i++) {
+            printOps.add(entries[i].index);     // 每个工件的打印工序（工序0）
+            // 批处理工序（工序1）不在染色体中，由装箱算法自动处理
+            for (int j = 2; j < entries[i].opsNr; j++) {  // 离散工序（从工序2开始）
+                discreteOps.add(entries[i].index);
             }
         }
-        Collections.shuffle(discreteOs, this.r);
         
-        // ============ 合并gene_OS ============
-        this.gene_OS = new int[totalGenesInChromosome];
-        for (int i = 0; i < printOs.size(); i++) {
-            this.gene_OS[i] = printOs.get(i);
-        }
-        for (int i = 0; i < discreteOs.size(); i++) {
-            this.gene_OS[jobCount + i] = discreteOs.get(i);
-        }
+        // 分段打乱
+        Collections.shuffle(printOps, this.r);
+        Collections.shuffle(discreteOps, this.r);
         
-        // ============ 生成gene_MS（与gene_OS对应）============
-        // gene_MS[i] 直接存储机器号（1-based），不是备选机器的索引
-        this.gene_MS = new int[totalGenesInChromosome];
+        // 合并：打印工序在前，离散工序在后
+        os.addAll(printOps);
+        os.addAll(discreteOps);
+
+        ArrayList<Integer> ms = new ArrayList<>();
+        double[][] proDesMatrix = problem.getProDesMatrix();
+        int[][] operationToIndex = problem.getOperationToIndex();
         
-        // 打印工序的机器选择（前jobCount个基因）
-        for (int i = 0; i < jobCount; i++) {
-            int jobNo = this.gene_OS[i];
-            // 从打印工序（工序0）的可用机器列表中随机选择一台
-            List<Integer> availMachines = entries[jobNo].availableMachines[0];
-            this.gene_MS[i] = availMachines.get(r.nextInt(availMachines.size()));
+        // 打印工序段：按os的顺序为每个工件的打印工序选择机器
+        for (int i = 0; i < printOps.size(); i++) {
+            int jobNo = os.get(i);  // 从os中获取工件编号（已打乱）
+            // 为该工件的打印工序选择机器
+            int printMachineCount = entries[jobNo].opsMacNr[0];
+            ms.add(r.nextInt(printMachineCount) + 1);  // 打印机1, 2, ...
         }
         
-        // 离散工序的机器选择（第jobCount个基因开始）
-        int[] discreteOperCount = new int[jobCount]; // 追踪每个工件当前是第几道离散工序
-        for (int i = jobCount; i < totalGenesInChromosome; i++) {
-            int jobNo = this.gene_OS[i];
-            int discreteIdx = discreteOperCount[jobNo]; // 当前是该工件的第几道离散工序
-            int operNo = 2 + discreteIdx; // 实际工序号（工序2开始是离散工序）
+        // 批处理工序（工序1）不在染色体中，不需要机器选择基因
+        
+        // ✅ 离散工序段：按固定顺序（工件编号顺序）生成MS，与OS解耦
+        // MS的离散段结构：工件0的所有离散工序，工件1的所有离散工序，...
+        // 这个顺序是固定的，不随OS变化
+        for (int jobNo = 0; jobNo < entries.length; jobNo++) {
+            // 获取该工件的离散工序数量（从工序2开始）
+            int discreteOpsCount = entries[jobNo].opsNr - 2;  // 减去打印和批处理
             
-            // 从该工序的可用机器列表中随机选择一台
-            List<Integer> availMachines = entries[jobNo].availableMachines[operNo];
-            this.gene_MS[i] = availMachines.get(r.nextInt(availMachines.size()));
+            for (int localOperNo = 0; localOperNo < discreteOpsCount; localOperNo++) {
+                int operNo = 2 + localOperNo;  // 实际工序编号
+            int operIdx = operationToIndex[jobNo][operNo];
             
-            discreteOperCount[jobNo]++;
+            // 收集可选的机器编号（1-based）
+            ArrayList<Integer> availableMachines = new ArrayList<>();
+            for (int k = 0; k < proDesMatrix[operIdx].length; k++) {
+                if (proDesMatrix[operIdx][k] != 0 && proDesMatrix[operIdx][k] != Double.MAX_VALUE) {
+                        availableMachines.add(k + 1);
+                    }
+                }
+                
+            if (!availableMachines.isEmpty()) {
+                    // 随机选择一个机器的相对索引（1到availableMachines.size()）
+                    int relativeIndex = 1 + r.nextInt(availableMachines.size());
+                    ms.add(relativeIndex);
+            } else {
+                throw new RuntimeException("工件" + jobNo + "的工序" + operNo + "没有可用机器");
+                }
+            }
+        }
+
+        this.gene_OS = new int[os.size()];
+        for (int i = 0; i < os.size(); i++) {
+            this.gene_OS[i] = os.get(i);
+        }
+        this.gene_MS = new int[ms.size()];
+        for (int i = 0; i < ms.size(); i++) {
+            this.gene_MS[i] = ms.get(i);
         }
 
         this.fitness = 0;
@@ -96,6 +112,266 @@ public class Chromosome implements Comparable<Chromosome> {
         // printSolution将在evaluate时根据打印机数量初始化
         this.printSolution = null;
     }
+    
+    /**
+     * 带初始化策略的构造函数
+     * @param entries 工件信息
+     * @param r 随机数生成器
+     * @param problem 问题实例
+     * @param strategy 初始化策略
+     */
+    public Chromosome(Job[] entries, Random r, ProgramEntity.Problem problem, InitializationStrategy strategy) {
+        this.r = r;
+        ArrayList<Integer> os = new ArrayList<>();
+        ArrayList<Integer> printOps = new ArrayList<>();
+        ArrayList<Integer> discreteOps = new ArrayList<>();
+        
+        // 收集打印工序和离散工序
+        for (int i = 0; i < entries.length; i++) {
+            printOps.add(entries[i].index);
+            for (int j = 2; j < entries[i].opsNr; j++) {
+                discreteOps.add(entries[i].index);
+            }
+        }
+        
+        // 应用打印工序排序策略
+        sortOperations(printOps, strategy.printSortStrategy, problem);
+        
+        // 应用离散工序排序策略
+        sortOperations(discreteOps, strategy.discreteSortStrategy, problem);
+        
+        // 合并工序序列
+        os.addAll(printOps);
+        os.addAll(discreteOps);
+        
+        // 生成机器选择序列
+        ArrayList<Integer> ms = new ArrayList<>();
+        double[][] proDesMatrix = problem.getProDesMatrix();
+        int[][] operationToIndex = problem.getOperationToIndex();
+        Machine[] machines = problem.getMachines();
+        Item[] items = problem.getItems();
+        
+        // 打印工序的机器选择
+        // 注意：不使用entries[jobNo].opsMacNr[0]的限制
+        // 只要零件的长宽高符合打印机的长宽高，就可以分配
+        int totalPrintMachineCount = problem.getPrintMachineCount();
+        
+        for (int i = 0; i < printOps.size(); i++) {
+            int jobNo = os.get(i);
+            Item item = items[jobNo];
+            
+            // 找出所有能容纳该零件的打印机
+            ArrayList<Integer> suitableMachines = new ArrayList<>();
+            for (int m = 0; m < totalPrintMachineCount; m++) {
+                PrintMachine pm = (PrintMachine) machines[m];
+                // 检查零件尺寸是否能放入打印机（考虑旋转）
+                boolean fitsNormal = (item.l <= pm.L && item.w <= pm.W && item.h <= pm.H);
+                boolean fitsRotated = (item.w <= pm.L && item.l <= pm.W && item.h <= pm.H);
+                if (fitsNormal || fitsRotated) {
+                    suitableMachines.add(m + 1);  // 1-based
+                }
+            }
+            
+            if (suitableMachines.isEmpty()) {
+                throw new RuntimeException("工件" + jobNo + "尺寸(" + 
+                    String.format("%.2f x %.2f x %.2f", item.l, item.w, item.h) + 
+                    ")无法放入任何打印机");
+            }
+            
+            int selectedMachine;
+            if (strategy.printMachineStrategy == InitializationStrategy.MachineSelectionStrategy.ROULETTE_WHEEL) {
+                // 轮盘赌：基于打印机能力（printH和recoatingTime）
+                selectedMachine = selectPrintMachineByRoulette(jobNo, suitableMachines, machines, items, r);
+            } else if (strategy.printMachineStrategy == InitializationStrategy.MachineSelectionStrategy.LOAD_BALANCE) {
+                // 负载均衡：平均分配（轮流分配，round-robin）
+                selectedMachine = suitableMachines.get(i % suitableMachines.size());
+            } else {
+                // 随机选择
+                selectedMachine = suitableMachines.get(r.nextInt(suitableMachines.size()));
+            }
+            ms.add(selectedMachine);
+        }
+        
+        // ✅ 离散工序的机器选择：按固定顺序（工件编号顺序）生成MS，与OS解耦
+        // MS的离散段结构：工件0的所有离散工序，工件1的所有离散工序，...
+        // 这个顺序是固定的，不随OS变化
+        int jobCount = entries.length;
+        for (int jobNo = 0; jobNo < jobCount; jobNo++) {
+            // 获取该工件的离散工序数量（从工序2开始）
+            int discreteOpsCount = entries[jobNo].opsNr - 2;  // 减去打印和批处理
+            
+            for (int localOperNo = 0; localOperNo < discreteOpsCount; localOperNo++) {
+                int operNo = 2 + localOperNo;  // 实际工序编号
+            int operIdx = operationToIndex[jobNo][operNo];
+            
+            // 收集可选机器
+            ArrayList<Integer> availableMachines = new ArrayList<>();
+            ArrayList<Double> processingTimes = new ArrayList<>();
+            for (int k = 0; k < proDesMatrix[operIdx].length; k++) {
+                if (proDesMatrix[operIdx][k] != 0 && proDesMatrix[operIdx][k] != Double.MAX_VALUE) {
+                    availableMachines.add(k + 1);
+                    processingTimes.add(proDesMatrix[operIdx][k]);
+                }
+            }
+            
+            if (availableMachines.isEmpty()) {
+                throw new RuntimeException("工件" + jobNo + "的工序" + operNo + "没有可用机器");
+            }
+            
+                int selectedMachineIndex;  // 选中机器在availableMachines中的索引（0-based）
+            if (strategy.discreteMachineStrategy == InitializationStrategy.MachineSelectionStrategy.ROULETTE_WHEEL) {
+                // 轮盘赌：基于加工时长（时间越短，概率越大）
+                    int selectedMachine = selectDiscreteMachineByRoulette(availableMachines, processingTimes, r);
+                    selectedMachineIndex = availableMachines.indexOf(selectedMachine);
+            } else if (strategy.discreteMachineStrategy == InitializationStrategy.MachineSelectionStrategy.SHORTEST_PROCESS_TIME) {
+                // 选择加工时间最短的机器
+                    int selectedMachine = selectShortestProcessTimeMachine(availableMachines, processingTimes);
+                    selectedMachineIndex = availableMachines.indexOf(selectedMachine);
+            } else {
+                // 随机选择
+                    selectedMachineIndex = r.nextInt(availableMachines.size());
+            }
+                
+                // ✅ 存储相对索引（1-based）而不是绝对机器编号
+                int relativeIndex = selectedMachineIndex + 1;
+                ms.add(relativeIndex);
+            }
+        }
+        
+        // 转换为数组
+        this.gene_OS = new int[os.size()];
+        for (int i = 0; i < os.size(); i++) {
+            this.gene_OS[i] = os.get(i);
+        }
+        this.gene_MS = new int[ms.size()];
+        for (int i = 0; i < ms.size(); i++) {
+            this.gene_MS[i] = ms.get(i);
+        }
+        
+        this.fitness = 0;
+        this.printSolution = null;
+    }
+    
+    /**
+     * 根据策略对工序进行排序
+     */
+    private void sortOperations(ArrayList<Integer> operations, 
+                                InitializationStrategy.OperationSortStrategy strategy,
+                                ProgramEntity.Problem problem) {
+        switch (strategy) {
+            case RANDOM:
+                Collections.shuffle(operations, this.r);
+                break;
+                
+            case AREA_DESCENDING:
+                // 按面积降序排列
+                operations.sort((j1, j2) -> {
+                    Item item1 = problem.getItems()[j1];
+                    Item item2 = problem.getItems()[j2];
+                    double area1 = item1.l * item1.w;
+                    double area2 = item2.l * item2.w;
+                    return Double.compare(area2, area1);  // 降序
+                });
+                break;
+                
+            case HEIGHT_DESCENDING:
+                // 按高度降序排列
+                operations.sort((j1, j2) -> {
+                    Item item1 = problem.getItems()[j1];
+                    Item item2 = problem.getItems()[j2];
+                    return Double.compare(item2.h, item1.h);  // 降序
+                });
+                break;
+        }
+    }
+    
+    /**
+     * 轮盘赌选择打印机（基于打印能力）
+     * 打印时间 = prepareTime + reCoatingTime * itemHeight / printH
+     * 时间越短，打印能力越强，被选中概率越大
+     */
+    private int selectPrintMachineByRoulette(int jobNo, ArrayList<Integer> suitableMachines,
+                                            Machine[] machines, Item[] items, Random r) {
+        Item item = items[jobNo];
+        double[] printTimes = new double[suitableMachines.size()];
+        double totalInverseTime = 0.0;
+        
+        // 计算每台合适打印机的打印时间（越短越好）
+        for (int i = 0; i < suitableMachines.size(); i++) {
+            int machineIdx = suitableMachines.get(i) - 1;  // 转换为0-based索引
+            PrintMachine pm = (PrintMachine) machines[machineIdx];
+            double printTime = pm.prepareTime + pm.reCoatingTime * item.h / pm.printH;
+            printTimes[i] = printTime;
+            // 使用倒数作为适应度（时间越短，适应度越高）
+            totalInverseTime += 1.0 / printTime;
+        }
+        
+        // 轮盘赌选择
+        double rand = r.nextDouble() * totalInverseTime;
+        double sum = 0.0;
+        for (int i = 0; i < suitableMachines.size(); i++) {
+            sum += 1.0 / printTimes[i];
+            if (sum >= rand) {
+                return suitableMachines.get(i);  // 返回1-based机器编号
+            }
+        }
+        
+        return suitableMachines.get(suitableMachines.size() - 1);  // 默认返回最后一台
+    }
+    
+    /**
+     * 轮盘赌选择离散处理机器（基于加工时长）
+     * 加工时间越短，被选中概率越大
+     */
+    private int selectDiscreteMachineByRoulette(ArrayList<Integer> availableMachines,
+                                               ArrayList<Double> processingTimes,
+                                               Random r) {
+        double totalInverseTime = 0.0;
+        
+        // 计算适应度总和（使用倒数，时间越短适应度越高）
+        for (double time : processingTimes) {
+            totalInverseTime += 1.0 / time;
+        }
+        
+        // 轮盘赌选择
+        double rand = r.nextDouble() * totalInverseTime;
+        double sum = 0.0;
+        for (int i = 0; i < availableMachines.size(); i++) {
+            sum += 1.0 / processingTimes.get(i);
+            if (sum >= rand) {
+                return availableMachines.get(i);
+            }
+        }
+        
+        return availableMachines.get(availableMachines.size() - 1);  // 默认返回最后一个
+    }
+    
+    /**
+     * 选择加工时间最短的机器（贪心策略）
+     * 
+     * @param availableMachines 可选机器列表
+     * @param processingTimes 对应的加工时间列表
+     * @return 加工时间最短的机器ID
+     */
+    private int selectShortestProcessTimeMachine(ArrayList<Integer> availableMachines,
+                                                 ArrayList<Double> processingTimes) {
+        if (availableMachines.isEmpty()) {
+            throw new IllegalArgumentException("可选机器列表为空");
+        }
+        
+        // 找到加工时间最短的机器
+        int shortestIndex = 0;
+        double shortestTime = processingTimes.get(0);
+        
+        for (int i = 1; i < availableMachines.size(); i++) {
+            if (processingTimes.get(i) < shortestTime) {
+                shortestTime = processingTimes.get(i);
+                shortestIndex = i;
+            }
+        }
+        
+        return availableMachines.get(shortestIndex);
+    }
 
     public Chromosome(Chromosome c) {
         this.gene_MS = new int[c.gene_MS.length];
@@ -104,14 +380,15 @@ public class Chromosome implements Comparable<Chromosome> {
         System.arraycopy(c.gene_OS, 0, this.gene_OS, 0, c.gene_OS.length);
         this.r = c.r;
         this.fitness = c.fitness;
-        // 复制printSolution
+        
+        // 深度复制printSolution（重要！确保best染色体的装箱结果被保留）
         if (c.printSolution != null) {
             this.printSolution = new List[c.printSolution.length];
             for (int i = 0; i < c.printSolution.length; i++) {
                 if (c.printSolution[i] != null) {
                     this.printSolution[i] = new ArrayList<>(c.printSolution[i]);
                 } else {
-                    this.printSolution[i] = new ArrayList<>();
+                    this.printSolution[i] = null;
                 }
             }
         } else {
@@ -129,101 +406,5 @@ public class Chromosome implements Comparable<Chromosome> {
         } else {
             return -1;
         }
-    }
-    
-    /**
-     * 打印染色体的详细信息，用于调试
-     * @param jobCount 工件数量，用于分析gene_OS
-     */
-    public void printChromosomeInfo(int jobCount) {
-        System.out.println("\n" + "--------------------------");
-        System.out.println("              染色体详细信息");
-        System.out.println("--------------------------------");
-        
-        System.out.println("基因长度: OS=" + gene_OS.length + ", MS=" + gene_MS.length);
-        System.out.println("染色体结构: [打印工序:" + jobCount + "个] + [离散工序:" + (gene_OS.length - jobCount) + "个]");
-        System.out.println("注意: 批处理工序不在染色体中体现，由算法自动安排");
-        System.out.println("适应度: " + fitness);
-        
-        // 打印gene_OS
-        System.out.println("\n【工序序列 gene_OS】");
-        System.out.print("  打印工序: ");
-        for (int i = 0; i < jobCount && i < gene_OS.length; i++) {
-            System.out.print(gene_OS[i] + " ");
-        }
-        System.out.println();
-        System.out.print("  离散工序: ");
-        for (int i = jobCount; i < gene_OS.length; i++) {
-            System.out.print(gene_OS[i] + " ");
-            if ((i - jobCount + 1) % 20 == 0) System.out.print("\n            ");
-        }
-        System.out.println();
-        
-        // 统计每个工件在gene_OS中出现的次数
-        System.out.println("\n【工件出现次数统计】");
-        int[] jobCountsInPrint = new int[jobCount];
-        int[] jobCountsInDiscrete = new int[jobCount];
-        for (int i = 0; i < jobCount && i < gene_OS.length; i++) {
-            jobCountsInPrint[gene_OS[i]]++;
-        }
-        for (int i = jobCount; i < gene_OS.length; i++) {
-            jobCountsInDiscrete[gene_OS[i]]++;
-        }
-        for (int i = 0; i < jobCount; i++) {
-            System.out.println("  工件" + i + ": 打印" + jobCountsInPrint[i] + "次, 离散" + jobCountsInDiscrete[i] + "次");
-        }
-        
-        // 分析打印阶段（前jobCount个基因）
-        System.out.println("\n【打印阶段分析（前" + jobCount + "个基因）】");
-        for (int i = 0; i < jobCount && i < gene_OS.length; i++) {
-            int jobNo = gene_OS[i];
-            int machineNo = gene_MS[i];
-            System.out.println("  位置" + i + ": 工件" + jobNo + " → 打印机" + machineNo);
-        }
-        
-        // 检查打印阶段是否有重复工件
-        System.out.println("\n【打印阶段重复检查】");
-        boolean[] printedJobs = new boolean[jobCount];
-        boolean hasDuplicate = false;
-        for (int i = 0; i < jobCount && i < gene_OS.length; i++) {
-            int jobNo = gene_OS[i];
-            if (printedJobs[jobNo]) {
-                System.out.println("  警告: 工件" + jobNo + "在打印阶段被重复分配！(位置" + i + ")");
-                hasDuplicate = true;
-            }
-            printedJobs[jobNo] = true;
-        }
-        if (!hasDuplicate) {
-            System.out.println("  [OK] 打印阶段无重复工件");
-        }
-        
-        // 检查是否所有工件都被分配了打印机
-        System.out.println("\n【工件打印分配检查】");
-        boolean allAssigned = true;
-        for (int i = 0; i < jobCount; i++) {
-            if (!printedJobs[i]) {
-                System.out.println("  警告: 工件" + i + "未被分配打印任务！");
-                allAssigned = false;
-            }
-        }
-        if (allAssigned) {
-            System.out.println("  [OK] 所有工件都已分配打印机");
-        }
-        
-        // 打印gene_MS
-        System.out.println("\n【机器选择 gene_MS】");
-        System.out.print("  打印机选择: ");
-        for (int i = 0; i < jobCount && i < gene_MS.length; i++) {
-            System.out.print(gene_MS[i] + " ");
-        }
-        System.out.println();
-        System.out.print("  离散机器选择: ");
-        for (int i = jobCount; i < gene_MS.length; i++) {
-            System.out.print(gene_MS[i] + " ");
-            if ((i - jobCount + 1) % 20 == 0) System.out.print("\n                  ");
-        }
-        System.out.println();
-        
-        System.out.println("-----------------------------------------");
     }
 }

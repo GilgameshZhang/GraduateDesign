@@ -67,12 +67,10 @@ public class Input {
             int index = 0;// store the index of first blank 标记第一个空格位置
             int maxOperationCount = 0, tempCount = 0;
             // find the max operation count of the job arrays 找出工序最多者
-            // 新格式：第一个数字是离散工序数，总工序数 = 离散工序数 + 2（打印 + 批处理）
             for (int i = 0; i < jobNum; i++) {
                 prodesStrArr[i] = reader.readLine().trim();
                 index = prodesStrArr[i].indexOf(' ');
-                int discreteCount = Integer.valueOf(prodesStrArr[i].substring(0, index));//离散工序数
-                tempCount = discreteCount + 2; // 总工序数 = 离散工序数 + 2（打印 + 批处理）
+                tempCount = Integer.valueOf(prodesStrArr[i].substring(0, index));//每个工件的工序数
                 count += tempCount;
                 if (maxOperationCount < tempCount)
                     maxOperationCount = tempCount;
@@ -89,35 +87,13 @@ public class Input {
             Item[] items = new Item[jobNum];
             for (int i = 0; i < jobNum; i++) {
                 opeationDesArr = prodesStrArr[i].split("\\s+");
-                // 新格式：离散工序数 L W H [离散工序详情...]
-                // 第一个是离散工序数（不含打印和批处理）
-                int discreteOperationCount = Integer.valueOf(opeationDesArr[0]);
-                // 总工序数 = 离散工序数 + 2（打印工序 + 批处理工序）
-                operationCount = discreteOperationCount + 2;
-                operationCountArr[i] = operationCount;
-                
-                // L W H 在索引1,2,3
+                //每一个工件开始的前三个分别为该工件的L W H
                 items[i] = new Item(String.valueOf(i), Double.valueOf(opeationDesArr[1]), Double.valueOf(opeationDesArr[2]), Double.valueOf(opeationDesArr[3]));
-                
-                // 第一道工序（打印工序）：不在算例中，占位
-                operationToIndex[i][0] = operationTotalIndex;
-                operationCountList.add(1); // 打印工序只有1台打印机可选（实际由算法决定）
-                operationTotalIndex++;
-                if (operationTotalIndex < count) {
-                    proDesMatrix[operationTotalIndex] = new double[machineNum];
-                }
-                
-                // 第二道工序（批处理工序）：不在算例中，占位
-                operationToIndex[i][1] = operationTotalIndex;
-                operationCountList.add(1); // 批处理工序占位
-                operationTotalIndex++;
-                if (operationTotalIndex < count) {
-                    proDesMatrix[operationTotalIndex] = new double[machineNum];
-                }
-                
-                // 从第三道工序开始解析离散工序（索引从4开始）
-                int k = 4;
-                for (int j = 0; j < discreteOperationCount; j++) {
+                // the opeartion count of every job 每个工件的工序数
+                operationCount = Integer.valueOf(opeationDesArr[4]);
+                operationCountArr[i] = operationCount;
+                int k = 5;
+                for (int j = 0; j < operationCount; j++) {
                     if (k < opeationDesArr.length) {
                         selectedMachineCount = Integer.valueOf(opeationDesArr[k++]);
                         // 存储每个工序的备选机器数目
@@ -128,8 +104,8 @@ public class Input {
                         }
                         operationCountList.add(selectedMachineCount);
                     }
-                    // 用来存储i工件j工序所对应的problemDesMatrix[][]的index（j+2因为前面有打印和批处理）
-                    operationToIndex[i][j + 2] = operationTotalIndex;
+                    // 用来存储i工件j工序所对应的problemDesMatrix[][]的index
+                    operationToIndex[i][j] = operationTotalIndex;
                     operationTotalIndex++;
                     if (operationTotalIndex < count) {
                         proDesMatrix[operationTotalIndex] = new double[machineNum];
